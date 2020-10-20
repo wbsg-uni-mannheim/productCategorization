@@ -84,7 +84,6 @@ def split_dataset(df_dataset):
     """Split dataset into train, test and validation set"""
     # split into training and testing set 80:20 (stratify)
     random = int(os.getenv("RANDOM_STATE"))
-    logger = logging.getLogger(__name__)
 
     # Intermediate Solution: if only one leaf element exists, these elements are added to the trainings set
     # To-Do: Find more sustainable solution
@@ -107,11 +106,26 @@ def split_dataset(df_dataset):
 
 
 def persist_dataset(df_dataset, dataset, split_name):
+    logger = logging.getLogger(__name__)
     project_dir = Path(__file__).resolve().parents[2]
-    file_path = project_dir.joinpath('data/processed/{}/split/raw/{}_data_{}.pkl'.format(dataset, split_name, dataset))
+    relative_path = 'data/processed/{}/split/raw/{}_data_{}.pkl'.format(dataset, split_name, dataset)
+    file_path = project_dir.joinpath(relative_path)
+
+    # Create new path if it does not exist yet!
+    if not os.path.exists(file_path):
+        logger.info('Path {} does not exist!'.format(file_path))
+        path_parts = relative_path.split('/')
+        path_parts = path_parts[:-1]
+        file_path = project_dir
+        for part in path_parts:
+            file_path = file_path.joinpath(part)
+            if not os.path.exists(file_path):
+                os.mkdir(file_path)
+        file_path = file_path.joinpath('{}_data_{}.pkl'.format(split_name, dataset))
 
     with open(file_path, 'wb') as f:
         pickle.dump(df_dataset, f)
+        logger.info('{} Split of Dataset saved at {}!'.format(split_name, dataset, file_path))
 
 
 if __name__ == '__main__':

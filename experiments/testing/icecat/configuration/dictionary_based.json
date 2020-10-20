@@ -1,0 +1,13 @@
+{ "type" : "dict-based",
+  "dataset" : "icecat",
+  "most_frequent_leaf" : "Notebooks",
+  "parameter" :[
+  {
+    "synonyms": "False",
+    "lemmatizing": "False",
+    "fallback": "False"
+  },{
+    "synonyms": "False",
+    "lemmatizing": "False",
+    "fallback": "True"
+  }]}

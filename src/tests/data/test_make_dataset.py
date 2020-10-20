@@ -21,7 +21,7 @@ class TestMakeDataSet(unittest.TestCase):
         # Execute function
         trigger_load_dataset('subset_rakuten')
         # Test success
-        self.assertEqual(os.path.exists(path_to_pickle), True)
+        self.assertEqual(True, os.path.exists(path_to_pickle))
 
         df_train_rakuten = pd.read_pickle(path_to_pickle)
         df_testing_train_rakuten = pd.read_pickle(project_dir.joinpath('data/testing/processed/subset_rakuten/split/raw/subset_rakuten_data_train.pkl'))

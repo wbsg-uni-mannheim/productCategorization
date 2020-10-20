@@ -14,10 +14,12 @@ class DictClassifier(object):
         self.logger = logging.getLogger(__name__)
 
         self.dataset = dataset
-        self.synonyms_dict = self.generate_synonyms(dataset)
+        self.synonyms_dict = None
+        self.tree = None
         self.most_frequent_leaf = most_frequent_leaf
 
         self.wnl = WordNetLemmatizer()
+        self.generate_synonyms(dataset)
         self.logger.info('Initialized Dict-classifier for dataset {}'.format(dataset))
 
     def generate_synonyms(self, dataset):
@@ -25,11 +27,11 @@ class DictClassifier(object):
         path_to_tree = project_dir.joinpath('data', 'raw', dataset, 'tree', 'tree_{}.pkl'.format(dataset))
 
         with open(path_to_tree, 'rb') as f:
-            tree = pickle.load(f)
+            self.tree = pickle.load(f)
 
-        leaf_nodes_wdc = [node[0] for node in tree.out_degree if node[1] == 0]
+        leaf_nodes_wdc = [node[0] for node in self.tree.out_degree if node[1] == 0]
 
-        synonyms_dict = {}
+        self.synonyms_dict = {}
 
         for classname in leaf_nodes_wdc:
             synonyms = []
@@ -37,47 +39,60 @@ class DictClassifier(object):
             for syn in wordnet.synsets(classname.replace(' ', '_')):
                 for lem in syn.lemmas():
                     synonyms.append(lem.name().replace('_', ' ').lower())
-            synonyms_dict[classname] = synonyms
+            self.synonyms_dict[classname] = synonyms
 
         self.logger.info('Loaded synonyms for dataset {}'.format(dataset))
-        return synonyms_dict
 
-    def count_occurrences(self, list_of_words, target_string, lemmatize=False):
-        count = 0
-        for word in list_of_words:
-            if lemmatize:
-                word = self.wnl.lemmatize(word)
-            count = count + target_string.count(word)
-
-        # division by len(list_of_words) because if a label has multiple words, its count is likely to be higher
-        if len(list_of_words) > 0:
-            return count / len(list_of_words)
-        else:
+    def count_occurrences(self, list_of_words, target_string):
+        if len(list_of_words) == 0:
             return 0
+        else:
+            # division by len(list_of_words) because if a label has multiple words, its count is likely to be higher
+            count = sum([target_string.count(word) for word in list_of_words])
+            return count / len(list_of_words)
 
-    def classify_dictionary_based(self, test_data, fallback_classifier, synonyms=False, lemmatize=False):
+    def classify_dictionary_based(self, test_data, fallback_classifier, synonyms, lemmatize):
         y_pred = []
         count = 0
+        # Prepare class strings
+        classes_prep = {}
+        for classname in self.synonyms_dict.keys():
+            classes_prep[classname] = set(classname.lower().split())
+            if synonyms:
+                classes_prep[classname] = classes_prep[classname].union(
+                    set(' '.join(self.synonyms_dict[classname]).split()))
+            if lemmatize:
+                classes_prep[classname] = [self.wnl.lemmatize(word) for word in classes_prep[classname]]
 
+        # Prepare class strings
+        to_predict_by_fallback = []
         for text_of_instance in test_data:
-            word_count = {}
-
+            max_word = None
+            max_word_count = 0
             for classname in self.synonyms_dict.keys():
-                words_in_classname = set(classname.lower().split())
-                if synonyms:
-                    words_in_classname = words_in_classname.union(set(' '.join(self.synonyms_dict[classname]).split()))
-                word_count[classname] = self.count_occurrences(words_in_classname, text_of_instance, lemmatize)
+                word_rel_count = self.count_occurrences(classes_prep[classname], text_of_instance)
+                if word_rel_count > max_word_count:
+                    max_word_count = word_rel_count
+                    max_word = classname
 
-                max_words = max(word_count, key=word_count.get)
-
-                if word_count[max_words] == 0:
-                    count = count + 1
-                    if fallback_classifier:
-                        y_pred.append(fallback_classifier.predict(text_of_instance))
-                    else:
-                        y_pred.append(self.most_frequent_leaf)
+            if max_word_count == 0:
+                count = count + 1
+                if fallback_classifier:
+                    to_predict_by_fallback.append(text_of_instance)
+                    y_pred.append(0)
                 else:
-                    y_pred.append(max(word_count, key=word_count.get))
+                    y_pred.append(self.most_frequent_leaf)
+            else:
+                y_pred.append(max_word)
+
+        if fallback_classifier and len(to_predict_by_fallback) > 0:
+            # Use fallback only in case it is necessary!
+            fallback_predictions = fallback_classifier.predict(to_predict_by_fallback)
+
+            for i, p in enumerate(y_pred):
+                if p == 0:
+                    y_pred[i] = fallback_predictions[0]
+                    fallback_predictions = fallback_predictions[1:]
 
         self.logger.info('Most frequent class/fallback classifier was used %d times' % count)
 
