@@ -49,10 +49,12 @@ class TestMakeDataSet(unittest.TestCase):
             'icecat', 'dict-based', datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')))
         self.assertEqual(True, os.path.exists(path_to_results))
 
-        df_results = pd.read_csv(path_to_results.absolute())
+        df_results = pd.read_csv(path_to_results.absolute(), sep=';')
 
         self.assertEqual('First Experiment', df_results.loc[0]['Experiment Name'])
         self.assertEqual(0.58, df_results.loc[1]['weighted_prec'])
+        self.assertEqual(0.74, df_results.loc[1]['h_f1'])
+        self.assertEqual(6, len(df_results.columns))
 
         self.path_to_results = path_to_results
 

@@ -80,18 +80,18 @@ class ExperimentRunner:
         file_path = absolute_path.joinpath('{}_{}_results_{}.csv'.format(
                             self.dataset_name, self.experiment_type,
                             datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')))
-        header = ['Experiment Name', 'weighted_prec', 'weighted_recall', 'weighted_f1', 'macro_f1']
+        header = ['Experiment Name', 'weighted_prec', 'weighted_recall', 'weighted_f1', 'macro_f1', 'h_f1']
 
         rows = []
         for result in results.keys():
             row = [result, results[result]['weighted_prec'],
                    results[result]['weighted_rec'], results[result]['weighted_f1'],
-                   results[result]['macro_f1']]
+                   results[result]['macro_f1'], results[result]['h_f1']]
             rows.append(row)
 
         # Write to csv
         with open(file_path, 'w', newline='') as f:
-            csv_writer = csv.writer(f)
+            csv_writer = csv.writer(f, delimiter=';')
 
             csv_writer.writerow(header)
             csv_writer.writerows(rows)

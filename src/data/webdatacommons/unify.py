@@ -4,6 +4,7 @@
 def reduce_schema(df_original_dataset):
     df_dataset = df_original_dataset.copy()
 
-    df_dataset.rename(columns={'pathlist_names': 'path_list'}, inplace=True)
+    df_dataset.rename(columns={'pathlist_ids': 'path_list', 'CategoryName': 'category',
+                               'desc': 'description'}, inplace=True)
 
-    return df_dataset[['title', 'description', 'brand', 'category', 'path_list']]
+    return df_dataset[['title', 'description', 'category', 'path_list']]
