@@ -1,3 +1,6 @@
+import pickle
+from pathlib import Path
+
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support, f1_score
 from networkx import all_pairs_shortest_path_length, relabel_nodes
@@ -181,3 +184,27 @@ def get_most_important_features(classifier_pipeline_object):
 #        print("%s: %s" % (class_label,
 #              " ".join(feature_names[j] for j in top10)))
 #        print()
+
+class TransformersEvaluator():
+    def __init__(self, dataset_name, experiment_name):
+        project_dir = Path(__file__).resolve().parents[2]
+        path_to_tree = project_dir.joinpath('data', 'raw', dataset_name, 'tree', 'tree_{}.pkl'.format(dataset_name))
+
+        with open(path_to_tree, 'rb') as f:
+            self.tree = pickle.load(f)
+
+        self.root = [node[0] for node in self.tree.in_degree if node[1] == 0][0]
+
+    def compute_metrics_transformers(self, pred):
+        labels = pred.label_ids
+        preds = pred.predictions.argmax(-1)
+
+        scores_all_labels = eval_traditional("bert", labels, preds)
+        h_f_score = hierarchical_eval("bert", labels, preds, self.tree, self.root)
+
+        # To-Do: Change structure of elements!
+        return {'weighted_prec': scores_all_labels[0][0][0],
+                'weighted_rec': scores_all_labels[0][0][1],
+                'weighted_f1': scores_all_labels[0][0][2],
+                'macro_f1': scores_all_labels[0][1],
+                'h_f1': h_f_score}

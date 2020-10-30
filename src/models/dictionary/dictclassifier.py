@@ -2,6 +2,7 @@
 import logging
 import pickle
 from pathlib import Path
+import nltk
 
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
@@ -23,6 +24,8 @@ class DictClassifier(object):
         self.logger.info('Initialized Dict-classifier for dataset {}'.format(dataset))
 
     def generate_synonyms(self, dataset):
+
+        nltk.download('wordnet') # To-Do: Refactor!
         project_dir = Path(__file__).resolve().parents[3]
         path_to_tree = project_dir.joinpath('data', 'raw', dataset, 'tree', 'tree_{}.pkl'.format(dataset))
 

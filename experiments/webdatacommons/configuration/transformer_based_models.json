@@ -1,0 +1,15 @@
+{ "type" : "transformer-based",
+  "dataset" : "webdatacommons",
+    "parameter" :[{
+      "experiment_name": "bert-base-uncased",
+      "model_name": "bert-base-uncased"
+    },
+    {
+      "experiment_name": "bert-large-uncased",
+      "model_name": "bert-large-uncased"
+    },
+    {
+      "experiment_name": "roberta-base",
+      "model_name": "roberta-base"
+    }]
+}

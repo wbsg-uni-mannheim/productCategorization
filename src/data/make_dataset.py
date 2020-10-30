@@ -25,6 +25,7 @@ def main(dataset):
 def trigger_load_dataset(dataset):
     logger = logging.getLogger(__name__)
 
+
     # Load dot environment file
     load_dotenv(find_dotenv())
     datasets = os.getenv("DATASETS")
