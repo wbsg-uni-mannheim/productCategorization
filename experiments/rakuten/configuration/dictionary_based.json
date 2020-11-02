@@ -1,0 +1,37 @@
+{ "type" : "dict-based",
+  "dataset" : "webdatacommons",
+  "most_frequent_leaf" : "Ink Cartridges",
+  "parameter" :[
+  {
+    "synonyms": "False",
+    "lemmatizing": "False",
+    "fallback": "False"
+  },{
+    "synonyms": "False",
+    "lemmatizing": "False",
+    "fallback": "True"
+  },{
+  "synonyms": "True",
+  "lemmatizing": "False",
+  "fallback": "False"
+},{
+  "synonyms": "False",
+  "lemmatizing": "True",
+  "fallback": "False"
+},{
+  "synonyms": "True",
+  "lemmatizing": "True",
+  "fallback": "False"
+},{
+  "synonyms": "True",
+  "lemmatizing": "False",
+  "fallback": "True"
+},{
+  "synonyms": "False",
+  "lemmatizing": "True",
+  "fallback": "True"
+},{
+  "synonyms": "True",
+  "lemmatizing": "True",
+  "fallback": "True"
+}]}
