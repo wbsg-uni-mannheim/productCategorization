@@ -168,7 +168,7 @@ class ExperimentRunner:
 
                 tf_ds = {}
                 for key in self.dataset:
-                    df_ds = self.dataset[key][:50]
+                    df_ds = self.dataset[key]
                     texts = list(df_ds['title'].values)
                     labels = list(df_ds['category'].values)
 
