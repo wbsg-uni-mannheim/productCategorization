@@ -29,12 +29,23 @@ class ExperimentRunner:
         self.experiment_type = None
         self.dataset_name = None
         self.dataset = {}
+        self.wdc = None
         self.parameter = None
         self.most_frequent_leaf = None
 
         self.results = None
 
         self.load_experiments(path)
+        #Evaluate on WDC - find smarter solution(!)
+        self.load_datasets('webdatacommons')
+        self.wdc = self.dataset
+
+        full_dataset = pd.DataFrame()
+
+        for key in self.dataset:
+            self.dataset[key]['dataset'] = key
+            self.wdc = full_dataset.append(self.dataset[key])
+
         self.load_datasets(self.dataset_name)
 
     def __str__(self):
@@ -96,7 +107,6 @@ class ExperimentRunner:
 
         rows = []
         for result in results.keys():
-            #Make this more dynamic!
             row = [result, self.dataset_name]
             for metric in results[result].items():
                 row.append(metric[1])
@@ -187,6 +197,7 @@ class ExperimentRunner:
                 trainer.train()
                 result_collector = {}
                 result_collector[parameter['experiment_name']] = trainer.evaluate(tf_ds['test'])
+                result_collector['{}-wdc'.format(parameter['experiment_name'])] = trainer.evaluate(self.wdc)
                 trainer.save_model()
 
                 timestamp = time.time()
