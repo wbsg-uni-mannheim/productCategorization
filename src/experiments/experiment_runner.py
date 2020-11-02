@@ -87,7 +87,7 @@ class ExperimentRunner:
         file_path = absolute_path.joinpath('{}_{}_results_{}.csv'.format(
                             self.dataset_name, self.experiment_type,
                             datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')))
-        header = ['Experiment Name','Dataset' 'eval_weighted_prec', 'eval_weighted_recall', 'eval_weighted_f1',
+        header = ['Experiment Name','Dataset', 'eval_weighted_prec', 'eval_weighted_recall', 'eval_weighted_f1',
                   'eval_macro_f1', 'eval_h_f1', 'eval_loss']
 
         rows = []
