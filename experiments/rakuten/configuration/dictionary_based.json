@@ -1,5 +1,5 @@
 { "type" : "dict-based",
-  "dataset" : "webdatacommons",
+  "dataset" : "rakuten",
   "most_frequent_leaf" : "Ink Cartridges",
   "parameter" :[
   {

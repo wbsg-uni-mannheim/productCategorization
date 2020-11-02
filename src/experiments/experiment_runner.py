@@ -17,7 +17,7 @@ from src.models.dictionary.dictclassifier import DictClassifier
 from datetime import datetime
 import time
 
-from transformers import BertForSequenceClassification, TrainingArguments, BertTokenizerFast, Trainer
+from transformers import TrainingArguments, Trainer
 
 
 class ExperimentRunner:
@@ -77,6 +77,7 @@ class ExperimentRunner:
         self.logger.info('Loaded dataset {}!'.format(dataset_name))
 
     def persist_results(self, results, timestamp):
+        """Persist Experiment Results"""
         project_dir = Path(__file__).resolve().parents[2]
         relative_path = 'experiments/{}/results/'.format(self.dataset_name)
         absolute_path = project_dir.joinpath(relative_path)
@@ -87,15 +88,18 @@ class ExperimentRunner:
         file_path = absolute_path.joinpath('{}_{}_results_{}.csv'.format(
                             self.dataset_name, self.experiment_type,
                             datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')))
-        header = ['Experiment Name','Dataset', 'eval_weighted_prec', 'eval_weighted_recall', 'eval_weighted_f1',
-                  'eval_macro_f1', 'eval_h_f1', 'eval_loss']
+
+        header = ['Experiment Name','Dataset']
+        # Use first experiment as reference for the metric header
+        metric_header = list(list(results.values())[0].keys())
+        header = header + metric_header
 
         rows = []
         for result in results.keys():
             #Make this more dynamic!
-            row = [result, self.dataset_name, results[result]['eval_weighted_prec'],
-                   results[result]['eval_weighted_rec'], results[result]['eval_weighted_f1'],
-                   results[result]['eval_macro_f1'], results[result]['eval_h_f1'], results[result]['eval_loss']]
+            row = [result, self.dataset_name]
+            for metric in results[result].items():
+                row.append(metric[1])
             rows.append(row)
 
         # Write to csv
@@ -118,10 +122,8 @@ class ExperimentRunner:
                 ('vect', CountVectorizer()),
                 ('clf', MultinomialNB()),
             ])
-
             classifier_dictionary_based = pipeline.fit(self.dataset['train']['title'].values,
                                                        self.dataset['train']['category'].values)
-            root = [node[0] for node in dict_classifier.tree.in_degree if node[1] == 0][0]
 
             result_collector = {}
 
@@ -140,15 +142,9 @@ class ExperimentRunner:
                     self.experiment_type, configuration['synonyms'],
                     configuration['lemmatizing'], configuration['fallback'])
 
-                scores_all_labels = evaluation.eval_traditional(experiment_name, y_true, y_pred)
-                h_f_score = evaluation.hierarchical_eval(experiment_name, y_true, y_pred, dict_classifier.tree, root)
+                eval = evaluation.TransformersEvaluator(self.dataset_name, experiment_name)
+                result_collector[experiment_name] = eval.compute_metrics(y_true, y_pred)
 
-                # To-Do: Change structure of elements!
-                result_collector[experiment_name] = {'weighted_prec': scores_all_labels[0][0][0],
-                                                     'weighted_rec': scores_all_labels[0][0][1],
-                                                     'weighted_f1': scores_all_labels[0][0][2],
-                                                     'macro_f1': scores_all_labels[0][1],
-                                                     'h_f1': h_f_score}
             timestamp = time.time()
             self.persist_results(result_collector, timestamp)
 
@@ -169,13 +165,14 @@ class ExperimentRunner:
                     tf_ds[key] = CategoryDataset(texts, labels, tokenizer, le_dict)
 
                 training_args = TrainingArguments(
-                output_dir='./../../experiments/{}/bert/results'.format(self.dataset_name),  # output directory
+                output_dir='./experiments/{}/bert/results'.format(self.dataset_name),  # output directory
                 num_train_epochs=3,  # total # of training epochs
                 per_device_train_batch_size=16,  # batch size per device during training
                 per_device_eval_batch_size=64,  # batch size for evaluation
                 warmup_steps=500,  # number of warmup steps for learning rate scheduler
                 weight_decay=0.01,  # strength of weight decay
-                logging_dir='./../../experiments/{}/bert/logs'.format(self.dataset_name),  # directory for storing logs
+                logging_dir='./experiments/{}/bert/logs'.format(self.dataset_name),  # directory for storing logs
+                save_total_limit=5 # Save only the last 5 Checkpoints
                 )
 
                 eval = evaluation.TransformersEvaluator(self.dataset_name, parameter['experiment_name'])

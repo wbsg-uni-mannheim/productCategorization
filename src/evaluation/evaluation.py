@@ -199,6 +199,10 @@ class TransformersEvaluator():
         labels = pred.label_ids
         preds = pred.predictions.argmax(-1)
 
+        return self.compute_metrics(labels,preds)
+
+
+    def compute_metrics(self, labels, preds):
         scores_all_labels = eval_traditional("bert", labels, preds)
         h_f_score = hierarchical_eval("bert", labels, preds, self.tree, self.root)
 

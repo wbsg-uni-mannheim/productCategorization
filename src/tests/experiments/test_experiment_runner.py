@@ -13,7 +13,7 @@ class TestMakeDataSet(unittest.TestCase):
     def setUp(self):
         # Set up - Retrieve all information from configuration file!
         project_dir = Path(__file__).resolve().parents[3]
-        path_to_experiments = project_dir.joinpath('experiments/testing/icecat/configuration/dictionary_based.json')
+        path_to_experiments = project_dir.joinpath('experiments/testing/icecat/configuration/dictionary_based_models.json')
 
         self.runner = ExperimentRunner(path_to_experiments)
         self.path_to_results = None
@@ -54,7 +54,7 @@ class TestMakeDataSet(unittest.TestCase):
         self.assertEqual('First Experiment', df_results.loc[0]['Experiment Name'])
         self.assertEqual(0.58, df_results.loc[1]['weighted_prec'])
         self.assertEqual(0.74, df_results.loc[1]['h_f1'])
-        self.assertEqual(6, len(df_results.columns))
+        self.assertEqual(7, len(df_results.columns))
 
         self.path_to_results = path_to_results
 
