@@ -182,7 +182,8 @@ class ExperimentRunner:
                 warmup_steps=500,  # number of warmup steps for learning rate scheduler
                 weight_decay=0.01,  # strength of weight decay
                 logging_dir='./experiments/{}/bert/logs'.format(self.dataset_name),  # directory for storing logs
-                save_total_limit=5 # Save only the last 5 Checkpoints
+                save_total_limit=5, # Save only the last 5 Checkpoints
+                gradient_accumulation_steps=2
                 )
 
                 eval = evaluation.TransformersEvaluator(self.dataset_name, parameter['experiment_name'])
