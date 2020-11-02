@@ -32,6 +32,7 @@ class ExperimentRunner:
         self.wdc = None
         self.parameter = None
         self.most_frequent_leaf = None
+        self.evaluate_wdc = None
 
         self.results = None
 
@@ -66,12 +67,11 @@ class ExperimentRunner:
 
         # Normalise experiment parameter
         for parameters in experiments['parameter']:
-            if self.experiment_type == 'dict-based':
-                for parameter, value in parameters.items():
-                    if value == 'True':
-                        parameters[parameter] = True
-                    elif value == 'False':
-                        parameters[parameter] = False
+            for parameter, value in parameters.items():
+                if value == 'True':
+                    parameters[parameter] = True
+                elif value == 'False':
+                    parameters[parameter] = False
 
         self.parameter = experiments['parameter']
 
@@ -168,7 +168,7 @@ class ExperimentRunner:
 
                 tf_ds = {}
                 for key in self.dataset:
-                    df_ds = self.dataset[key]
+                    df_ds = self.dataset[key][:50]
                     texts = list(df_ds['title'].values)
                     labels = list(df_ds['category'].values)
 
@@ -197,7 +197,14 @@ class ExperimentRunner:
                 trainer.train()
                 result_collector = {}
                 result_collector[parameter['experiment_name']] = trainer.evaluate(tf_ds['test'])
-                result_collector['{}-wdc'.format(parameter['experiment_name'])] = trainer.evaluate(self.wdc)
+
+                # Evaluate on WDC - Find smarter solution (!) - Save best model and evaluate later(?)
+                if parameter['evaluate_WDC']:
+                    texts = list(self.wdc['title'].values)
+                    labels = list(self.wdc['category'].values)
+
+                    ds_wdc = CategoryDataset(texts, labels, tokenizer, le_dict)
+                    result_collector['{}-wdc'.format(parameter['experiment_name'])] = trainer.evaluate(ds_wdc)
                 trainer.save_model()
 
                 timestamp = time.time()

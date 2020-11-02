@@ -3,6 +3,7 @@
     "parameter" :[
     {
       "experiment_name": "roberta-base",
-      "model_name": "roberta-base"
+      "model_name": "roberta-base",
+      "evaluate_WDC": "False"
     }]
 }
