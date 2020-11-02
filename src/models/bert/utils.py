@@ -1,14 +1,13 @@
 from transformers import BertTokenizerFast, BertForSequenceClassification, RobertaTokenizerFast, \
     RobertaForSequenceClassification
 
-
 def provide_model_and_tokenizer(name, num_labels):
-    dict_models = {
-        'bert-base-uncased': bert_base_uncased(num_labels),
-        'bert-large-uncased': bert_large_uncased(num_labels),
-        'roberta-base': roberta_base(num_labels),
-    }
-    return dict_models[name]
+    if name == 'bert-base-uncased':
+        return bert_base_uncased(num_labels)
+    elif name == 'bert-large-uncased':
+        return  bert_large_uncased(num_labels)
+    elif name == 'roberta-base':
+        return roberta_base(num_labels)
 
 def bert_base_uncased(num_labels):
     tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased')
