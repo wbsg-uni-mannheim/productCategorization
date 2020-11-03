@@ -56,7 +56,7 @@ class ModelEvaluator():
         self.encoder = LabelEncoder()
         self.encoder.fit(df_orig_ds['category'].values)
 
-        self.logger.info('Initialized encoder using {}!'.format(self.dataset_name))
+        self.logger.info('Initialized encoder using {}!'.format(self.original_dataset_name))
 
     def load_configuration(self, path):
         """Load configuration defined in the json for which a path is provided"""
