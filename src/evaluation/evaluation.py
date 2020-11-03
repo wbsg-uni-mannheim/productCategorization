@@ -186,7 +186,7 @@ def get_most_important_features(classifier_pipeline_object):
 #        print()
 
 class TransformersEvaluator():
-    def __init__(self, dataset_name, experiment_name):
+    def __init__(self, dataset_name, experiment_name, label_encoder):
         project_dir = Path(__file__).resolve().parents[2]
         path_to_tree = project_dir.joinpath('data', 'raw', dataset_name, 'tree', 'tree_{}.pkl'.format(dataset_name))
 
@@ -194,17 +194,20 @@ class TransformersEvaluator():
             self.tree = pickle.load(f)
 
         self.root = [node[0] for node in self.tree.in_degree if node[1] == 0][0]
+        self.experiment_name = experiment_name
+        self.label_encoder = label_encoder
 
     def compute_metrics_transformers(self, pred):
         labels = pred.label_ids
         preds = pred.predictions.argmax(-1)
-
+        labels = self.label_encoder.inverse_transform(labels)
+        preds = self.label_encoder.inverse_transform(preds)
         return self.compute_metrics(labels,preds)
 
 
     def compute_metrics(self, labels, preds):
-        scores_all_labels = eval_traditional("bert", labels, preds)
-        h_f_score = hierarchical_eval("bert", labels, preds, self.tree, self.root)
+        scores_all_labels = eval_traditional(self.experiment_name, labels, preds)
+        h_f_score = hierarchical_eval(self.experiment_name, labels, preds, self.tree, self.root)
 
         # To-Do: Change structure of elements!
         return {'weighted_prec': scores_all_labels[0][0][0],
