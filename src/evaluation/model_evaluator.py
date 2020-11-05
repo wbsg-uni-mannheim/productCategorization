@@ -70,6 +70,7 @@ class ModelEvaluator():
         self.original_dataset_name = configuration['original_dataset']
         self.model_path = configuration['model_path']
         self.model_name = configuration['model_name']
+        self.prediction_output = configuration['prediction_output']
 
         if configuration['evalualte_on_full_dataset'] == 'True':
             self.evaluate_on_full_dataset = True
@@ -81,13 +82,13 @@ class ModelEvaluator():
 
         result_collector = ResultCollector(self.dataset_name, self.type)
 
-        eval = evaluation.TransformersEvaluator(self.dataset_name, self.name, self.encoder)
+        eval = evaluation.HierarchicalEvaluator(self.dataset_name, self.name, self.encoder)
         trainer = Trainer(
             model=self.model,  # the instantiated 🤗 Transformers model to be trained
             compute_metrics=eval.compute_metrics_transformers
         )
         if self.evaluate_on_full_dataset:
-            ds_eval = self.full_dataset
+            ds_eval = self.full_dataset[:10]
         else:
             ds_eval = self.dataset['test']
 
@@ -100,6 +101,13 @@ class ModelEvaluator():
         ds_wdc = CategoryDataset(texts, labels, tokenizer, le_dict)
 
         result_collector.results[self.name]= trainer.evaluate(ds_wdc)
+
+        #Predict values for error analysis
+        prediction = trainer.predict(ds_wdc)
+        preds = prediction.predictions.argmax(-1)
+        ds_eval['prediction'] = self.encoder.inverse_transform(preds)
+
+        ds_eval.to_pickle(self.prediction_output)
 
         # Persist results
         timestamp = time.time()

@@ -36,8 +36,6 @@ class ExperimentRunner:
 
         self.load_experiments(path)
 
-        full_dataset = pd.DataFrame()
-
         self.load_datasets(self.dataset_name)
 
     def __str__(self):
@@ -64,7 +62,10 @@ class ExperimentRunner:
                 elif value == 'False':
                     parameters[parameter] = False
 
-        self.parameter = experiments['parameter']
+        if self.experiment_type == 'dict-based':
+            self.parameter = experiments['parameter']
+        else:
+            self.parameter = experiments['parameter'][0]
 
     def load_datasets(self, dataset_name):
         """Load dataset for the given experiments"""
@@ -94,64 +95,77 @@ class ExperimentRunner:
                                                        self.dataset['train']['category'].values)
 
             for configuration in self.parameter:
-                y_true = self.dataset['validate']['category'].values
+                y_true = self.dataset['validate']['category'].values[:20]
 
                 fallback_classifier = None
                 if configuration['fallback']:
                     fallback_classifier = classifier_dictionary_based
 
-                y_pred = dict_classifier.classify_dictionary_based(self.dataset['validate']['title'],
+                y_pred = dict_classifier.classify_dictionary_based(self.dataset['validate']['title'][:20],
                                                                    fallback_classifier, configuration['lemmatizing'],
                                                                    configuration['synonyms'])
 
+                print(y_true)
+                print('____________')
+                print(y_pred)
                 experiment_name = '{}; title only; synonyms: {}, lemmatizing: {}, fallback: {}'.format(
                     self.experiment_type, configuration['synonyms'],
                     configuration['lemmatizing'], configuration['fallback'])
 
-                eval = evaluation.TransformersEvaluator(self.dataset_name, experiment_name, None)
-                result_collector.results[experiment_name] = eval.compute_metrics(y_true, y_pred)
+                evaluator = evaluation.HierarchicalEvaluator(self.dataset_name, experiment_name, None)
+                result_collector.results[experiment_name] = evaluator.compute_metrics(y_true, y_pred)
 
         elif self.experiment_type == 'transformer-based':
-            for parameter in self.parameter:
-                encoder = LabelEncoder()
-                encoder.fit(self.dataset['train']['category'].values)
-                le_dict = dict(zip(encoder.classes_, encoder.transform(encoder.classes_)))
+            encoder = LabelEncoder()
+            encoder.fit(self.dataset['train']['category'].values)
+            le_dict = dict(zip(encoder.classes_, encoder.transform(encoder.classes_)))
 
-                tokenizer, model = utils.provide_model_and_tokenizer(parameter['model_name'], len(le_dict) + 1)
+            tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], len(le_dict) + 1)
 
-                tf_ds = {}
-                for key in self.dataset:
-                    df_ds = self.dataset[key]
-                    texts = list(df_ds['title'].values)
-                    labels = list(df_ds['category'].values)
+            tf_ds = {}
+            for key in self.dataset:
+                df_ds = self.dataset[key][:10]
+                texts = list(df_ds['title'].values)
+                labels = list(df_ds['category'].values)
 
-                    tf_ds[key] = CategoryDataset(texts, labels, tokenizer, le_dict)
+                tf_ds[key] = CategoryDataset(texts, labels, tokenizer, le_dict)
 
-                training_args = TrainingArguments(
-                    output_dir='./experiments/{}/transformers/results/model'.format(self.dataset_name),
+            training_args = TrainingArguments(
+                    output_dir='./experiments/{}/transformers/results/model/{}'
+                        .format(self.dataset_name, self.parameter['experiment_name']),
                     # output directory
-                    num_train_epochs=3,  # total # of training epochs
-                    per_device_train_batch_size=16,  # batch size per device during training
+                    num_train_epochs=self.parameter['epochs'],  # total # of training epochs
+                    learning_rate=self.parameter['learning_rate'],
+                    per_device_train_batch_size=self.parameter['per_device_train_batch_size'],  # batch size per device during training
                     per_device_eval_batch_size=64,  # batch size for evaluation
                     warmup_steps=500,  # number of warmup steps for learning rate scheduler
-                    weight_decay=0.01,  # strength of weight decay
+                    weight_decay=self.parameter['weight_decay'],  # strength of weight decay
                     logging_dir='./experiments/{}/transformers/logs'.format(self.dataset_name),
                     # directory for storing logs
-                    save_total_limit=5  # Save only the last 5 Checkpoints
-                )
+                    save_total_limit=5,  # Save only the last 5 Checkpoints
+                    metric_for_best_model=self.parameter['metric_for_best_model'],
+                    load_best_model_at_end=True,
+                    gradient_accumulation_steps=2,
+                    seed=self.parameter['seed']
+            )
 
-                eval = evaluation.TransformersEvaluator(self.dataset_name, parameter['experiment_name'], encoder)
-                trainer = Trainer(
-                    model=model,  # the instantiated 🤗 Transformers model to be trained
+            evaluator = evaluation.HierarchicalEvaluator(self.dataset_name, self.parameter['experiment_name'], encoder)
+            trainer = Trainer(
+                model=model,  # the instantiated 🤗 Transformers model to be trained
                     args=training_args,  # training arguments, defined above
                     train_dataset=tf_ds['train'],  # tensorflow_datasets training dataset
                     eval_dataset=tf_ds['validate'],  # tensorflow_datasets evaluation dataset
-                    compute_metrics=eval.compute_metrics_transformers
+                    compute_metrics=evaluator.compute_metrics_transformers
                 )
 
-                trainer.train()
-                result_collector.results[parameter['experiment_name']] = trainer.evaluate(tf_ds['test'])
-                trainer.save_model()
+            trainer.train()
+            result_collector.results['{}-{}'.format(self.parameter['experiment_name'], 'train')] \
+                = trainer.evaluate(tf_ds['train'])
+            result_collector.results['{}-{}'.format(self.parameter['experiment_name'], 'validate')] \
+                = trainer.evaluate(tf_ds['validate'])
+            result_collector.results['{}-{}'.format(self.parameter['experiment_name'], 'test')] \
+                = trainer.evaluate(tf_ds['test'])
+            trainer.save_model()
 
             # Persist results
             timestamp = time.time()

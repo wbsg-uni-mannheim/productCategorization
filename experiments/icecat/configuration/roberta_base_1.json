@@ -1,0 +1,16 @@
+{
+  "dataset": "icecat",
+  "parameter": [
+    {
+      "epochs": 3,
+      "evaluate_WDC": "True",
+      "experiment_name": "roberta-base-1",
+      "learning_rate": 5e-5,
+      "metric_for_best_model": "loss",
+      "model_name": "roberta-base",
+      "per_device_train_batch_size": 32,
+      "seed": 42,
+      "weight_decay": 0.01
+    }],
+  "type": "transformer-based"
+}

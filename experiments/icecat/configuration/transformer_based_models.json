@@ -1,9 +1,0 @@
-{ "type" : "transformer-based",
-  "dataset" : "icecat",
-    "parameter" :[
-    {
-      "experiment_name": "roberta-base",
-      "model_name": "roberta-base",
-      "evaluate_WDC": "True"
-    }]
-}

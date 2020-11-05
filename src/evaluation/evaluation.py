@@ -8,45 +8,27 @@ from contextlib import contextmanager
 from sklearn.preprocessing import MultiLabelBinarizer
 import logging
 
-
-def testing_traditional(y_true, y_pred, all_labels):
-    if all_labels:
-        return precision_recall_fscore_support(y_true, y_pred, pos_label=None, average='weighted')
-    else:
-        return precision_recall_fscore_support(y_true, y_pred, pos_label=None, labels=np.unique(y_true),
-                                               average='weighted')
-
-
-def eval_traditional(name, y_true, y_pred):
+def eval_traditional(y_true, y_pred, name='Unknown'):
     logger = logging.getLogger(__name__)
-    if name is None:
-        scores_all_labels_false = testing_traditional(y_true, y_pred, all_labels=False)
-        return scores_all_labels_false[:3]
-    else:
-        scores_all_labels_false = testing_traditional(y_true, y_pred, all_labels=False)
-        scores_all_labels_true = testing_traditional(y_true, y_pred, all_labels=True)
-        f1_score_all_labels_false = f1_score(y_true, y_pred, average='macro', labels=np.unique(y_true))
-        f1_score_all_labels_true = f1_score(y_true, y_pred, average='macro')
 
-        logger.info(
-            "{} | prec_weighted: {:4f} | rec_weighted: {:4f} | f1_weighted: {:4f} | f1_macro: {:4f} | true labels".format(
-                name, scores_all_labels_false[0], scores_all_labels_false[1], scores_all_labels_false[2],
-                f1_score_all_labels_false))
+    scores = precision_recall_fscore_support(y_true, y_pred, pos_label=None, average='weighted', zero_division=0)
+    f1_macro = f1_score(y_true, y_pred, average='macro')
 
-        logger.info(
-            "{} | prec_weighted: {:4f} | rec_weighted: {:4f} | f1_weighted: {:4f} | f1_macro: {:4f} | all labels".format(
-                name, scores_all_labels_true[0], scores_all_labels_true[1], scores_all_labels_true[2],
-                f1_score_all_labels_true))
+    logger.info(
+        "{} | prec_weighted: {:4f} | rec_weighted: {:4f} | f1_weighted: {:4f} | f1_macro: {:4f}".format(
+            name, scores[0], scores[1], scores[2], f1_macro))
 
-        return [scores_all_labels_false, f1_score_all_labels_false], [scores_all_labels_true, f1_score_all_labels_true]
+    return [scores[0], scores[1], scores[2], f1_macro]  # Precision_weighted, Recall_weighted, F1_weighted, F1_macro
 
 
-def f_1_weighted(y_true, y_pred):
-    return f1_score(y_true, y_pred, labels=np.unique(y_true), average='weighted')
+# Unsure if this is needed!
+# def f_1_weighted(y_true, y_pred):
+#    return f1_score(y_true, y_pred, labels=np.unique(y_true), average='weighted')
 
 
 def h_precision_score(y_true, y_pred, class_hierarchy, root):
-    """ Influenced by https://github.com/asitang/sklearn-hierarchical-classification/blob/develop/sklearn_hierarchical/metrics.py """
+    """ Influenced by https://github.com/asitang/sklearn-hierarchical-classification/blob/develop
+    /sklearn_hierarchical/metrics.py """
     y_true_ = fill_ancestors(y_true, root, graph=class_hierarchy)
     y_pred_ = fill_ancestors(y_pred, root, graph=class_hierarchy)
 
@@ -131,7 +113,7 @@ def multi_labeled(y_true, y_pred, graph, root):
     )
 
 
-def hierarchical_eval(name, y_true, y_pred, tree, root):
+def hierarchical_eval(y_true, y_pred, tree, root, name='Unknown'):
     logger = logging.getLogger(__name__)
     with multi_labeled(y_true, y_pred, tree, root) as (y_test_, y_pred_, graph_, root_):
         h_fbeta = h_fbeta_score(
@@ -176,42 +158,39 @@ def get_most_important_features(classifier_pipeline_object):
     # print(feature_names)
     return [feature_names[i] for i in classifier_pipeline_object['chi'].get_support(indices=True)]
 
-# Not sure if this part of code is executed
-# def print_top10(classifier_pipeline_object):
-#    feature_names = classifier_pipeline_object['vect'].get_feature_names()
-#    for i, class_label in enumerate(classifier_pipeline_object['clf'].classes_):
-#        top10 = np.argsort(classifier_pipeline_object['clf'].coef_[i])[-10:]
-#        print("%s: %s" % (class_label,
-#              " ".join(feature_names[j] for j in top10)))
-#        print()
 
-class TransformersEvaluator():
+class HierarchicalEvaluator():
     def __init__(self, dataset_name, experiment_name, label_encoder):
+        self.logger = logging.getLogger(__name__)
+
+        self.experiment_name = experiment_name
+        self.label_encoder = label_encoder
+
         project_dir = Path(__file__).resolve().parents[2]
         path_to_tree = project_dir.joinpath('data', 'raw', dataset_name, 'tree', 'tree_{}.pkl'.format(dataset_name))
 
         with open(path_to_tree, 'rb') as f:
             self.tree = pickle.load(f)
+            self.logger.info('Loaded tree for dataset {}!'.format(dataset_name))
 
         self.root = [node[0] for node in self.tree.in_degree if node[1] == 0][0]
-        self.experiment_name = experiment_name
-        self.label_encoder = label_encoder
 
     def compute_metrics_transformers(self, pred):
         labels = pred.label_ids
         preds = pred.predictions.argmax(-1)
+        #Postprocess labels
         labels = self.label_encoder.inverse_transform(labels)
         preds = self.label_encoder.inverse_transform(preds)
-        return self.compute_metrics(labels,preds)
 
+        return self.compute_metrics(labels, preds)
 
     def compute_metrics(self, labels, preds):
-        scores_all_labels = eval_traditional(self.experiment_name, labels, preds)
-        h_f_score = hierarchical_eval(self.experiment_name, labels, preds, self.tree, self.root)
+        scores = eval_traditional(labels, preds, name=self.experiment_name)
+        h_f_score = hierarchical_eval(labels, preds, self.tree, self.root, name=self.experiment_name)
 
         # To-Do: Change structure of elements!
-        return {'weighted_prec': scores_all_labels[0][0][0],
-                'weighted_rec': scores_all_labels[0][0][1],
-                'weighted_f1': scores_all_labels[0][0][2],
-                'macro_f1': scores_all_labels[0][1],
+        return {'weighted_prec': scores[0],
+                'weighted_rec': scores[1],
+                'weighted_f1': scores[2],
+                'macro_f1': scores[3],
                 'h_f1': h_f_score}
