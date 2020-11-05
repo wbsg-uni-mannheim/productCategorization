@@ -88,7 +88,7 @@ class ModelEvaluator():
             compute_metrics=eval.compute_metrics_transformers
         )
         if self.evaluate_on_full_dataset:
-            ds_eval = self.full_dataset[:10]
+            ds_eval = self.full_dataset
         else:
             ds_eval = self.dataset['test']
 
