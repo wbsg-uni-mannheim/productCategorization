@@ -1,9 +1,9 @@
 { "name": "evaluate_roberta_base_1",
   "type" : "eval-transformer-based",
-  "dataset" : "webdatacommons",
+  "dataset" : "icecat",
   "original_dataset" : "icecat",
   "model_path": "experiments/icecat/transformers/results/model/roberta-base-1",
-  "prediction_output": "experiments/webdatacommons/transformers/results/webdatacommons-roberta-base-1-prediction.pkl",
+  "prediction_output": "experiments/icecat/transformers/results/icecat-roberta-base-1-prediction.pkl",
   "model_name": "roberta-base",
-  "evalualte_on_full_dataset": "True"
+  "evalualte_on_full_dataset": "False"
 }

@@ -1,8 +1,0 @@
-{ "name": "Evaluate_Roberta_trained_on_Icecat_on_WDC",
-  "type" : "eval-transformer-based",
-  "dataset" : "icecat",
-  "original_dataset" : "icecat",
-  "model_path": "experiments/icecat/transformers/results/model",
-  "model_name": "roberta-base",
-  "evalualte_on_full_dataset": "False"
-}
