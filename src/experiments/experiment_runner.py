@@ -145,7 +145,7 @@ class ExperimentRunner:
                     save_total_limit=5,  # Save only the last 5 Checkpoints
                     metric_for_best_model=self.parameter['metric_for_best_model'],
                     load_best_model_at_end=True,
-                    gradient_accumulation_steps=2,
+                    gradient_accumulation_steps=self.parameter['gradient_accumulation_steps'],
                     seed=self.parameter['seed']
             )
 

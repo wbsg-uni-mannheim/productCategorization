@@ -5,6 +5,7 @@
       "epochs": 3,
       "evaluate_WDC": "True",
       "experiment_name": "roberta-base-1",
+      "gradient_accumulation_steps": 4,
       "learning_rate": 5e-5,
       "metric_for_best_model": "loss",
       "model_name": "roberta-base",
