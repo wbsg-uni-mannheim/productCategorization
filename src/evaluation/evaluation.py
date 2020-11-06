@@ -167,7 +167,7 @@ class HierarchicalEvaluator():
         self.label_encoder = label_encoder
 
         project_dir = Path(__file__).resolve().parents[2]
-        path_to_tree = project_dir.joinpath('data', 'raw', dataset_name, 'tree', 'tree_{}.pkl'.format(dataset_name))
+        path_to_tree = project_dir.joinpath('data', 'raw', dataset_name, 'tree', 'tree_{}.pkl'.format('icecat'))
 
         with open(path_to_tree, 'rb') as f:
             self.tree = pickle.load(f)
