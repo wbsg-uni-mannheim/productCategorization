@@ -2,9 +2,9 @@
   "dataset": "icecat",
   "parameter": [
     {
-      "epochs": 3,
+      "epochs": 5,
       "evaluate_WDC": "True",
-      "experiment_name": "roberta-base-1",
+      "experiment_name": "roberta-base-5",
       "gradient_accumulation_steps": 2,
       "learning_rate": 5e-5,
       "metric_for_best_model": "h_f1",

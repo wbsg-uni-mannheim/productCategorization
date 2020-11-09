@@ -130,8 +130,9 @@ class ExperimentRunner:
 
                 tf_ds[key] = CategoryDataset(texts, labels, tokenizer, le_dict)
 
+            timestamp = time.time()
             training_args = TrainingArguments(
-                    output_dir='./experiments/{}/transformers/results/model/{}'
+                    output_dir='./experiments/{}/transformers/results/model/{}-{}'
                         .format(self.dataset_name, self.parameter['experiment_name']),
                     # output directory
                     num_train_epochs=self.parameter['epochs'],  # total # of training epochs
@@ -140,7 +141,7 @@ class ExperimentRunner:
                     per_device_eval_batch_size=64,  # batch size for evaluation
                     warmup_steps=500,  # number of warmup steps for learning rate scheduler
                     weight_decay=self.parameter['weight_decay'],  # strength of weight decay
-                    logging_dir='./experiments/{}/transformers/logs'.format(self.dataset_name),
+                    logging_dir='./experiments/{}/transformers/logs-{}'.format(self.dataset_name),
                     # directory for storing logs
                     save_total_limit=5,  # Save only the last 5 Checkpoints
                     metric_for_best_model=self.parameter['metric_for_best_model'],
@@ -168,5 +169,4 @@ class ExperimentRunner:
             trainer.save_model()
 
             # Persist results
-            timestamp = time.time()
             result_collector.persist_results(timestamp)

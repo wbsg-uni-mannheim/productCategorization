@@ -64,7 +64,7 @@ class ModelEvaluator():
             configuration = json.load(json_file)
             self.logger.info('Loaded configuration from {}!'.format(path))
 
-        self.name = configuration['name']
+        self.name = configuration['experiment_name']
         self.type = configuration['type']
         self.dataset_name = configuration['dataset']
         self.original_dataset_name = configuration['original_dataset']

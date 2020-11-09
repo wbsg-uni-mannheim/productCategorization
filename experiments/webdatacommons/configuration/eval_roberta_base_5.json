@@ -1,4 +1,4 @@
-{ "name": "evaluate_roberta_base_5",
+{ "experiment_name": "evaluate_roberta_base_5",
   "type" : "eval-transformer-based",
   "dataset" : "webdatacommons",
   "original_dataset" : "icecat",
