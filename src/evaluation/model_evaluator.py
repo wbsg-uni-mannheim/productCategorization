@@ -14,8 +14,12 @@ from src.utils.result_collector import ResultCollector
 
 class ModelEvaluator():
 
-    def __init__(self, configuration_path):
+    def __init__(self, configuration_path, test):
         self.logger = logging.getLogger(__name__)
+        self.test = test
+        if test:
+            self.logger.warning('Run in Testmode!')
+
         self.dataset_name = None
         self.dataset = {}
         self.full_dataset = None
@@ -44,6 +48,9 @@ class ModelEvaluator():
             self.dataset[split] = pd.read_pickle(file_path)
             self.full_dataset = self.full_dataset.append(self.dataset[split])
 
+
+
+
         self.logger.info('Loaded dataset {}!'.format(self.dataset_name))
 
     def initialize_encoder(self):
@@ -58,11 +65,13 @@ class ModelEvaluator():
 
         self.logger.info('Initialized encoder using {}!'.format(self.original_dataset_name))
 
-    def load_configuration(self, path):
+    def load_configuration(self, relative_path):
         """Load configuration defined in the json for which a path is provided"""
-        with open(path) as json_file:
+        project_dir = Path(__file__).resolve().parents[2]
+        file_path = project_dir.joinpath(relative_path)
+        with open(file_path) as json_file:
             configuration = json.load(json_file)
-            self.logger.info('Loaded configuration from {}!'.format(path))
+            self.logger.info('Loaded configuration from {}!'.format(file_path))
 
         self.name = configuration['experiment_name']
         self.type = configuration['type']
@@ -91,6 +100,11 @@ class ModelEvaluator():
             ds_eval = self.full_dataset
         else:
             ds_eval = self.dataset['test']
+
+        if self.test:
+            # Load only a subset of the data
+            ds_eval = ds_eval[:50]
+            self.logger.warning('Run in Testmode - dataset reduced to 50 records!')
 
         texts = list(ds_eval['title'].values)
         labels = list(ds_eval['category'].values)

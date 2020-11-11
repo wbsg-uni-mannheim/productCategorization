@@ -13,6 +13,7 @@ from src.models.transformers import utils
 from src.models.transformers.category_dataset import CategoryDataset
 from src.models.dictionary.dictclassifier import DictClassifier
 import time
+from datetime import datetime
 
 from transformers import TrainingArguments, Trainer
 
@@ -21,8 +22,11 @@ from src.utils.result_collector import ResultCollector
 
 class ExperimentRunner:
 
-    def __init__(self, path):
+    def __init__(self, path, test):
         self.logger = logging.getLogger(__name__)
+        self.test = test
+        if test:
+            self.logger.warning('Run in Testmode!')
 
         self.path = path
         self.experiment_type = None
@@ -83,6 +87,7 @@ class ExperimentRunner:
         """Run experiments"""
         result_collector = ResultCollector(self.dataset_name, self.experiment_type)
 
+        # To-Do: Split in dict-based and transformer-based model
         if self.experiment_type == 'dict-based':
             dict_classifier = DictClassifier(self.dataset_name, self.most_frequent_leaf)
 
@@ -91,17 +96,18 @@ class ExperimentRunner:
                 ('vect', CountVectorizer()),
                 ('clf', MultinomialNB()),
             ])
+
             classifier_dictionary_based = pipeline.fit(self.dataset['train']['title'].values,
                                                        self.dataset['train']['category'].values)
 
             for configuration in self.parameter:
-                y_true = self.dataset['validate']['category'].values[:20]
+                y_true = self.dataset['validate']['category'].values
 
                 fallback_classifier = None
                 if configuration['fallback']:
                     fallback_classifier = classifier_dictionary_based
 
-                y_pred = dict_classifier.classify_dictionary_based(self.dataset['validate']['title'][:20],
+                y_pred = dict_classifier.classify_dictionary_based(self.dataset['validate']['title'],
                                                                    fallback_classifier, configuration['lemmatizing'],
                                                                    configuration['synonyms'])
 
@@ -125,14 +131,20 @@ class ExperimentRunner:
             tf_ds = {}
             for key in self.dataset:
                 df_ds = self.dataset[key]
+                if self.test:
+                    # load only subset of the data
+                    df_ds = df_ds[:50]
+                    self.logger.warning('Run in test mode - dataset reduced to 50 records!')
+
                 texts = list(df_ds['title'].values)
                 labels = list(df_ds['category'].values)
 
                 tf_ds[key] = CategoryDataset(texts, labels, tokenizer, le_dict)
 
             timestamp = time.time()
+            string_timestamp = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')
             training_args = TrainingArguments(
-                    output_dir='./experiments/{}/transformers/results/model/{}-{}'
+                    output_dir='./experiments/{}/transformers/results/model/{}'
                         .format(self.dataset_name, self.parameter['experiment_name']),
                     # output directory
                     num_train_epochs=self.parameter['epochs'],  # total # of training epochs
@@ -141,7 +153,7 @@ class ExperimentRunner:
                     per_device_eval_batch_size=64,  # batch size for evaluation
                     warmup_steps=500,  # number of warmup steps for learning rate scheduler
                     weight_decay=self.parameter['weight_decay'],  # strength of weight decay
-                    logging_dir='./experiments/{}/transformers/logs-{}'.format(self.dataset_name),
+                    logging_dir='./experiments/{}/transformers/logs-{}'.format(self.dataset_name, string_timestamp),
                     # directory for storing logs
                     save_total_limit=5,  # Save only the last 5 Checkpoints
                     metric_for_best_model=self.parameter['metric_for_best_model'],
@@ -160,12 +172,15 @@ class ExperimentRunner:
                 )
 
             trainer.train()
-            result_collector.results['{}-{}'.format(self.parameter['experiment_name'], 'train')] \
-                = trainer.evaluate(tf_ds['train'])
-            result_collector.results['{}-{}'.format(self.parameter['experiment_name'], 'validate')] \
-                = trainer.evaluate(tf_ds['validate'])
-            result_collector.results['{}-{}'.format(self.parameter['experiment_name'], 'test')] \
-                = trainer.evaluate(tf_ds['test'])
+
+            for split in ['train', 'validate', 'test']:
+                result_collector.results['{}+{}'.format(self.parameter['experiment_name'], split)] \
+                    = trainer.evaluate(tf_ds[split])
+            #result_collector.results['{}-{}'.format(self.parameter['experiment_name'], 'validate')] \
+            #    = trainer.evaluate(tf_ds['validate'])
+            #result_collector.results['{}-{}'.format(self.parameter['experiment_name'], 'test')] \
+            #    = trainer.evaluate(tf_ds['test'])
+
             trainer.save_model()
 
             # Persist results

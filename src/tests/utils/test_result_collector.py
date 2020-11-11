@@ -28,7 +28,7 @@ class TestResultCollector(unittest.TestCase):
         experiment_type = 'dict_based'
         result_collector = ResultCollector(dataset_name, experiment_type)
 
-        result_collector.results = {'First Experiment': {'weighted_prec': 0.56,
+        result_collector.results = {'First Experiment+train': {'weighted_prec': 0.56,
                                        'weighted_rec': 0.56,
                                        'weighted_f1': 0.56,
                                        'macro_f1': 0.54,
@@ -52,8 +52,9 @@ class TestResultCollector(unittest.TestCase):
         df_results = pd.read_csv(path_to_results.absolute(), sep=';')
 
         self.assertEqual('First Experiment', df_results.loc[0]['Experiment Name'])
+        self.assertEqual('train', df_results.loc[0]['Split'])
         self.assertEqual(0.58, df_results.loc[1]['weighted_prec'])
         self.assertEqual(0.74, df_results.loc[1]['h_f1'])
-        self.assertEqual(7, len(df_results.columns))
+        self.assertEqual(8, len(df_results.columns))
 
         self.path_to_results = path_to_results

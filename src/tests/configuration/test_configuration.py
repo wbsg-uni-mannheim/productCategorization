@@ -7,18 +7,22 @@ from pathlib import Path
 class TestConfiguration(unittest.TestCase):
 
     def test_unique_configurations(self):
-        """Proof configuration to be valuable"""
+        """Proof configuration to be valid!"""
         datasets = ['icecat', 'webdatacommons', 'rakuten']
         project_dir = Path(__file__).resolve().parents[3]
+
+        dataset_experiment_name_combination = {}
+        original_experiment_dataset_names = []
 
         for dataset_name in datasets:
             relative_path = 'experiments/{}/configuration/'.format(dataset_name)
             absolute_path = project_dir.joinpath(relative_path)
 
             # Load all configurations
+            prediction_outputs = []
             experiment_names = []
             parameter_hashes = []
-            prediction_outputs = []
+
 
             configurations = os.listdir(absolute_path)
             n_configurations = len(configurations)
@@ -45,6 +49,10 @@ class TestConfiguration(unittest.TestCase):
                         self.assertNotIn(experiment_name, experiment_names, 'Duplicated experiment name: {}'
                                          .format(experiment_name))
 
+                        derived_filename = '{}.json'.format(experiment_name)
+                        msg = 'Configuration {} does not match experiment name {}!'.format(filename, derived_filename)
+                        self.assertEqual(filename, derived_filename, msg=msg)
+
                         experiment_names.append(experiment_name)
 
                     elif experiment_type == 'dict-based':
@@ -57,11 +65,27 @@ class TestConfiguration(unittest.TestCase):
                                          .format(experiment_name))
                         experiment_names.append(experiment_name)
 
+                        derived_filename = '{}.json'.format(experiment_name)
+                        msg = 'Configuration {} does not match experiment name {}!'.format(filename, derived_filename)
+                        self.assertEqual(filename, derived_filename, msg=msg)
+
+                        # Evaluate if original experiment exists
+                        original_experiment_name = experiments["original_experiment_name"]
+                        original_dataset = experiments["original_dataset"]
+
+                        experiment_reference = (original_dataset, original_experiment_name, experiment_name)
+                        original_experiment_dataset_names.append(experiment_reference)
+
                         prediction_output = experiments["prediction_output"]
                         self.assertNotIn(prediction_output, prediction_outputs, 'Duplicated prediction output: {}'
                                          .format(prediction_output))
                         prediction_outputs.append(prediction_output)
 
+                dataset_experiment_name_combination[dataset_name] = experiment_names.copy()
+
+            for original_dataset, original_experiment_name, experiment_name in original_experiment_dataset_names:
+                self.assertIn(original_experiment_name, dataset_experiment_name_combination[original_dataset],
+                              'Original experiment of evaluation experiment {} does not exist!'. format(experiment_name))
 
             self.assertEqual(n_configurations, counter,
                              'Some configurations of dataset {} have an unknown experiment type!'.format(dataset_name))

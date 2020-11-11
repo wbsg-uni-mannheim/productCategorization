@@ -27,14 +27,20 @@ class ResultCollector():
                             self.dataset_name, self.experiment_type,
                             datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')))
 
-        header = ['Experiment Name','Dataset']
+        header = ['Experiment Name','Dataset','Split']
         # Use first experiment as reference for the metric header
         metric_header = list(list(self.results.values())[0].keys())
         header = header + metric_header
 
         rows = []
         for result in self.results.keys():
-            row = [result, self.dataset_name]
+            if '+' in result:
+                result_parts = result.split('+')
+                experiment_name = result_parts[0]
+                split = result_parts[1]
+                row = [experiment_name, self.dataset_name, split]
+            else:
+                row = [result, self.dataset_name, 'all']
             for metric in self.results[result].items():
                 row.append(metric[1])
             rows.append(row)

@@ -12,7 +12,7 @@ class TestExperimentRunner(unittest.TestCase):
         project_dir = Path(__file__).resolve().parents[3]
         path_to_experiments = project_dir.joinpath('experiments/testing/icecat/configuration/dictionary_based_models.json')
 
-        self.runner = ExperimentRunner(path_to_experiments)
+        self.runner = ExperimentRunner(path_to_experiments, True)
         self.path_to_results = None
 
     def test_load_dict_experiments(self):
