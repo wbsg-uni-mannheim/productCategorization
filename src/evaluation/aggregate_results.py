@@ -46,7 +46,7 @@ def append_original_configuration(df_results):
             configuration = \
                 load_configuration(configuration['original_dataset'], configuration['original_experiment_name'])
 
-        parameters = configuration["parameter"][0]
+        parameters = configuration["parameter"]
         for parameter in parameters:
             if parameter == 'experiment_name':
                 row['Original Experiment Name'] = parameters[parameter]

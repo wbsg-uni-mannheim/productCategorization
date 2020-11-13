@@ -1,4 +1,3 @@
-import json
 from sklearn.preprocessing import LabelEncoder
 import time
 from datetime import datetime
@@ -19,20 +18,12 @@ class ExperimentRunnerTransformer(ExperimentRunner):
         super().__init__(path, test, experiment_type)
 
         self.load_experiments(path)
-
-        self.load_datasets(self.dataset_name)
+        self.load_datasets()
 
     def load_experiments(self, path):
         """Load experiments defined in the json for which a path is provided"""
-        with open(path) as json_file:
-            experiments = json.load(json_file)
-            self.logger.info('Loaded experiments from {}!'.format(path))
-
-        if self.experiment_type != experiments['type']:
-            raise ValueError('Run experiment type and experiment type from {} do not match!'.format(path))
-
-        self.dataset_name = experiments['dataset']
-        self.parameter = experiments['parameter'][0]
+        experiments = self.load_configuration(path)
+        self.parameter = experiments['parameter']
 
     def run(self):
         """Run experiments"""

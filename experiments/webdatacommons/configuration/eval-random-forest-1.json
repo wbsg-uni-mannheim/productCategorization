@@ -1,0 +1,10 @@
+{ "experiment_name": "eval-random-forest-1",
+  "type" : "eval-random-forest-based",
+  "dataset" : "webdatacommons",
+  "original_dataset" : "icecat",
+  "original_experiment_name" : "random-forest-1",
+  "model_path": "experiments/icecat/random_forest/results/model/random-forest-1.pkl",
+  "prediction_output": "experiments/webdatacommons/transformers/results/webdatacommons-random-forest-1-prediction.pkl",
+  "model_name": "random-forest",
+  "evaluate_on_full_dataset": "True"
+}

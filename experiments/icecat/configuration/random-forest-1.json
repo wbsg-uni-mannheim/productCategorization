@@ -1,0 +1,10 @@
+{
+  "dataset": "icecat",
+  "parameter":
+    {
+      "experiment_name": "random-forest-1",
+      "model_name": "random-forest",
+      "seed": 42
+    },
+  "type": "random-forest-based"
+}

@@ -1,57 +1,42 @@
-import json
-import logging
-import time
 from pathlib import Path
+
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
-from transformers import RobertaForSequenceClassification, TrainingArguments, Trainer
-
-from src.evaluation import evaluation
-from src.models.transformers import utils
-from src.models.transformers.category_dataset import CategoryDataset
-from src.utils.result_collector import ResultCollector
+from src.models.model_runner import ModelRunner
 
 
-class ModelEvaluator():
+class ModelEvaluator(ModelRunner):
 
-    def __init__(self, configuration_path, test):
-        self.logger = logging.getLogger(__name__)
-        self.test = test
-        if test:
-            self.logger.warning('Run in Testmode!')
+    def __init__(self, configuration_path, test, experiment_type):
+        super().__init__(configuration_path, test, experiment_type)
 
-        self.dataset_name = None
-        self.dataset = {}
         self.full_dataset = None
         self.model = None
         self.encoder = None
 
-        self.load_configuration(configuration_path)
+        self.original_dataset_name = None
+        self.model_path = None
+        self.model_name = None
+        self.prediction_output = None
+        self.evaluate_on_full_dataset = None
+        self.experiment_name = None
+
+        self.load_experiments(configuration_path)
         self.load_datasets()
-        self.initialize_encoder() # Preprocess dataset labels as done for training dataset
 
-        project_dir = Path(__file__).resolve().parents[2]
-        file_path = project_dir.joinpath(self.model_path)
-        self.model = RobertaForSequenceClassification.from_pretrained(file_path)
+        # Create full (concatenated) dataset if necessary!
+        if self.evaluate_on_full_dataset:
+            self.create_full_dataset()
 
-    def load_datasets(self):
+        self.initialize_encoder()  # Preprocess dataset labels as done for training dataset
+
+    def create_full_dataset(self):
         """Load dataset for the given experiments"""
-        project_dir = Path(__file__).resolve().parents[2]
-        splits = ['train', 'validate', 'test']
-
         self.full_dataset = pd.DataFrame()
-
-        for split in splits:
-            relative_path = 'data/processed/{}/split/raw/{}_data_{}.pkl'\
-                                .format(self.dataset_name, split, self.dataset_name)
-            file_path = project_dir.joinpath(relative_path)
-            self.dataset[split] = pd.read_pickle(file_path)
+        for split in self.dataset:
             self.full_dataset = self.full_dataset.append(self.dataset[split])
 
-
-
-
-        self.logger.info('Loaded dataset {}!'.format(self.dataset_name))
+        self.logger.info('Created full dataset!')
 
     def initialize_encoder(self):
         """Initialize Encoder"""
@@ -65,37 +50,26 @@ class ModelEvaluator():
 
         self.logger.info('Initialized encoder using {}!'.format(self.original_dataset_name))
 
-    def load_configuration(self, relative_path):
+    def load_experiments(self, relative_path):
         """Load configuration defined in the json for which a path is provided"""
-        project_dir = Path(__file__).resolve().parents[2]
-        file_path = project_dir.joinpath(relative_path)
-        with open(file_path) as json_file:
-            configuration = json.load(json_file)
-            self.logger.info('Loaded configuration from {}!'.format(file_path))
+        experiments = self.load_configuration(relative_path)
 
-        self.name = configuration['experiment_name']
-        self.type = configuration['type']
-        self.dataset_name = configuration['dataset']
-        self.original_dataset_name = configuration['original_dataset']
-        self.model_path = configuration['model_path']
-        self.model_name = configuration['model_name']
-        self.prediction_output = configuration['prediction_output']
+        self.experiment_name = experiments['experiment_name']
+        self.original_dataset_name = experiments['original_dataset']
+        self.model_path = experiments['model_path']
+        self.model_name = experiments['model_name']
+        self.prediction_output = experiments['prediction_output']
 
-        if configuration['evalualte_on_full_dataset'] == 'True':
+        if experiments['evaluate_on_full_dataset'] == 'True':
             self.evaluate_on_full_dataset = True
         else:
             self.evaluate_on_full_dataset = False
 
 
     def evaluate(self):
+        """Implemented in subclass"""
 
-        result_collector = ResultCollector(self.dataset_name, self.type)
-
-        eval = evaluation.HierarchicalEvaluator(self.dataset_name, self.name, self.encoder)
-        trainer = Trainer(
-            model=self.model,  # the instantiated 🤗 Transformers model to be trained
-            compute_metrics=eval.compute_metrics_transformers
-        )
+    def prepare_eval_dataset(self):
         if self.evaluate_on_full_dataset:
             ds_eval = self.full_dataset
         else:
@@ -104,25 +78,6 @@ class ModelEvaluator():
         if self.test:
             # Load only a subset of the data
             ds_eval = ds_eval[:50]
-            self.logger.warning('Run in Testmode - dataset reduced to 50 records!')
+            self.logger.warning('Run in test mode - dataset reduced to 50 records!')
 
-        texts = list(ds_eval['title'].values)
-        labels = list(ds_eval['category'].values)
-        le_dict = dict(zip(self.encoder.classes_, self.encoder.transform(self.encoder.classes_)))
-
-        tokenizer = utils.provide_tokenizer(self.model_name)
-
-        ds_wdc = CategoryDataset(texts, labels, tokenizer, le_dict)
-
-        result_collector.results[self.name]= trainer.evaluate(ds_wdc)
-
-        #Predict values for error analysis
-        prediction = trainer.predict(ds_wdc)
-        preds = prediction.predictions.argmax(-1)
-        ds_eval['prediction'] = self.encoder.inverse_transform(preds)
-
-        ds_eval.to_pickle(self.prediction_output)
-
-        # Persist results
-        timestamp = time.time()
-        result_collector.persist_results(timestamp)
+        return ds_eval

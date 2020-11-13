@@ -6,5 +6,5 @@
   "model_path": "experiments/icecat/transformers/results/model/roberta-base-1",
   "prediction_output": "experiments/webdatacommons/transformers/results/webdatacommons-roberta-base-1-prediction.pkl",
   "model_name": "roberta-base",
-  "evalualte_on_full_dataset": "True"
+  "evaluate_on_full_dataset": "True"
 }

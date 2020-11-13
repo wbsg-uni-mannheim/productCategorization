@@ -23,7 +23,6 @@ class TestConfiguration(unittest.TestCase):
             experiment_names = []
             parameter_hashes = []
 
-
             configurations = os.listdir(absolute_path)
             n_configurations = len(configurations)
             counter = 0
@@ -39,36 +38,48 @@ class TestConfiguration(unittest.TestCase):
                     experiment_type = experiments["type"]
                     if experiment_type == 'transformer-based':
                         counter = counter + 1
-                        parameter = experiments["parameter"][0] #Only first element of parameter is filled for now
+                        parameter = experiments["parameter"]
                         hash_parameter = hash(str(parameter))
                         self.assertNotIn(hash_parameter, parameter_hashes, 'Parameter of configuration {} already known!'
                                          .format(file_path))
                         parameter_hashes.append(hash_parameter)
 
                         experiment_name = parameter["experiment_name"]
-                        self.assertNotIn(experiment_name, experiment_names, 'Duplicated experiment name: {}'
-                                         .format(experiment_name))
 
-                        derived_filename = '{}.json'.format(experiment_name)
-                        msg = 'Configuration {} does not match experiment name {}!'.format(filename, derived_filename)
-                        self.assertEqual(filename, derived_filename, msg=msg)
-
-                        experiment_names.append(experiment_name)
+                    elif experiment_type == 'eval-transformer-based':
+                        counter = counter + 1
+                        experiment_name = experiments["experiment_name"]
 
                     elif experiment_type == 'dict-based':
                         counter = counter + 1
-                    elif experiment_type == 'eval-transformer-based':
+                        # Add dummy experiment name - Only one dict based config per dataset!
+                        experiment_name = 'dictionary_based_models'
+
+                    elif experiment_type == 'random-forest-based':
                         counter = counter + 1
+                        parameter = experiments["parameter"]
+                        hash_parameter = hash(str(parameter))
+                        self.assertNotIn(hash_parameter, parameter_hashes,
+                                         'Parameter of configuration {} already known!'
+                                         .format(file_path))
+                        parameter_hashes.append(hash_parameter)
 
+                        experiment_name = experiments["parameter"]["experiment_name"]
+
+                    elif experiment_type == 'eval-random-forest-based':
+                        counter = counter + 1
                         experiment_name = experiments["experiment_name"]
-                        self.assertNotIn(experiment_name, experiment_names, 'Duplicated experiment name: {}'
-                                         .format(experiment_name))
-                        experiment_names.append(experiment_name)
 
-                        derived_filename = '{}.json'.format(experiment_name)
-                        msg = 'Configuration {} does not match experiment name {}!'.format(filename, derived_filename)
-                        self.assertEqual(filename, derived_filename, msg=msg)
+                    # Check duplicate experiment names!
+                    self.assertNotIn(experiment_name, experiment_names, 'Duplicated experiment name: {}'
+                                     .format(experiment_name))
 
+                    # Check experiment name matches name of configuration file!
+                    derived_filename = '{}.json'.format(experiment_name)
+                    msg = 'Configuration {} does not match experiment name {}!'.format(filename, derived_filename)
+                    self.assertEqual(filename, derived_filename, msg=msg)
+
+                    if 'eval-' in experiment_type:
                         # Evaluate if original experiment exists
                         original_experiment_name = experiments["original_experiment_name"]
                         original_dataset = experiments["original_dataset"]
@@ -78,8 +89,10 @@ class TestConfiguration(unittest.TestCase):
 
                         prediction_output = experiments["prediction_output"]
                         self.assertNotIn(prediction_output, prediction_outputs, 'Duplicated prediction output: {}'
-                                         .format(prediction_output))
+                                     .format(prediction_output))
                         prediction_outputs.append(prediction_output)
+
+                    experiment_names.append(experiment_name)
 
                 dataset_experiment_name_combination[dataset_name] = experiment_names.copy()
 

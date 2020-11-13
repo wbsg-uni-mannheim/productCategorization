@@ -1,4 +1,4 @@
-import json
+import time
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
@@ -19,18 +19,11 @@ class ExperimentRunnerDict(ExperimentRunner):
         self.most_frequent_leaf = None
 
         self.load_experiments(path)
-
-        self.load_datasets(self.dataset_name)
+        self.load_datasets()
 
     def load_experiments(self, path):
         """Load experiments defined in the json for which a path is provided"""
-        with open(path) as json_file:
-            experiments = json.load(json_file)
-            self.logger.info('Loaded experiments from {}!'.format(path))
-
-        if self.experiment_type != experiments['type']:
-            raise ValueError('Run experiment type and experiment type from {} do not match!'.format(path))
-        self.dataset_name = experiments['dataset']
+        experiments = self.load_configuration(path)
         self.most_frequent_leaf = experiments['most_frequent_leaf']
 
         # Normalise experiment parameter
@@ -75,3 +68,7 @@ class ExperimentRunnerDict(ExperimentRunner):
 
             evaluator = evaluation.HierarchicalEvaluator(self.dataset_name, experiment_name, None)
             result_collector.results[experiment_name] = evaluator.compute_metrics(y_true, y_pred)
+
+        # Persist results
+        timestamp = time.time()
+        result_collector.persist_results(timestamp)

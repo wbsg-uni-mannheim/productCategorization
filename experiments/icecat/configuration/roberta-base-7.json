@@ -1,6 +1,6 @@
 {
   "dataset": "icecat",
-  "parameter": [
+  "parameter":
     {
       "epochs": 5,
       "evaluate_WDC": "True",
@@ -12,6 +12,6 @@
       "per_device_train_batch_size": 16,
       "seed": 42,
       "weight_decay": 0.02
-    }],
+    },
   "type": "transformer-based"
 }
