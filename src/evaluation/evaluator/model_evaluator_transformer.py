@@ -3,7 +3,7 @@ from pathlib import Path
 from transformers import RobertaForSequenceClassification, Trainer
 
 from src.evaluation import evaluation
-from src.evaluation.model_evaluator import ModelEvaluator
+from src.evaluation.evaluator.model_evaluator import ModelEvaluator
 from src.models.transformers import utils
 from src.models.transformers.category_dataset import CategoryDataset
 from src.utils.result_collector import ResultCollector
@@ -17,7 +17,7 @@ class ModelEvaluatorTransformer(ModelEvaluator):
         self.load_model()
 
     def load_model(self):
-        project_dir = Path(__file__).resolve().parents[2]
+        project_dir = Path(__file__).resolve().parents[3]
         file_path = project_dir.joinpath(self.model_path)
         self.model = RobertaForSequenceClassification.from_pretrained(file_path)
 

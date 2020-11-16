@@ -4,8 +4,9 @@ import logging
 
 import click
 
-from src.evaluation.model_evaluator_random_forest import ModelEvaluatorRandomForest
-from src.evaluation.model_evaluator_tranformer import ModelEvaluatorTransformer
+from src.evaluation.evaluator.model_evaluator_fasttext import ModelEvaluatorFastText
+from src.evaluation.evaluator.model_evaluator_random_forest import ModelEvaluatorRandomForest
+from src.evaluation.evaluator.model_evaluator_transformer import ModelEvaluatorTransformer
 
 
 @click.command()
@@ -20,6 +21,8 @@ def main(configuration, test, experiment_type):
         evaluator = ModelEvaluatorTransformer(configuration, test, experiment_type)
     elif experiment_type == 'eval-random-forest-based':
         evaluator = ModelEvaluatorRandomForest(configuration, test, experiment_type)
+    elif experiment_type == 'eval-fasttext-based':
+        evaluator = ModelEvaluatorFastText(configuration, test, experiment_type)
     else:
         raise ValueError('Experiment Type {} not defined!'.format(experiment_type))
 

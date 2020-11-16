@@ -20,6 +20,7 @@ class ModelEvaluator(ModelRunner):
         self.prediction_output = None
         self.evaluate_on_full_dataset = None
         self.experiment_name = None
+        self.parameter = None
 
         self.load_experiments(configuration_path)
         self.load_datasets()
@@ -40,7 +41,7 @@ class ModelEvaluator(ModelRunner):
 
     def initialize_encoder(self):
         """Initialize Encoder"""
-        project_dir = Path(__file__).resolve().parents[2]
+        project_dir = Path(__file__).resolve().parents[3]
         relative_path = 'data/processed/{}/split/raw/train_data_{}.pkl' \
             .format(self.original_dataset_name, self.original_dataset_name)
         file_path = project_dir.joinpath(relative_path)
@@ -64,6 +65,9 @@ class ModelEvaluator(ModelRunner):
             self.evaluate_on_full_dataset = True
         else:
             self.evaluate_on_full_dataset = False
+
+        self.parameter = experiments
+
 
 
     def evaluate(self):

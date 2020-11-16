@@ -5,7 +5,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 
 from src.evaluation import evaluation
-from src.experiments.experiment_runner import ExperimentRunner
+from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.models.dictionary.dictclassifier import DictClassifier
 
 from src.utils.result_collector import ResultCollector

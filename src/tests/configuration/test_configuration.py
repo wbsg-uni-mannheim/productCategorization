@@ -70,9 +70,27 @@ class TestConfiguration(unittest.TestCase):
                         counter = counter + 1
                         experiment_name = experiments["experiment_name"]
 
+                    elif experiment_type == 'fasttext-based':
+                        counter = counter + 1
+                        parameter = experiments["parameter"]
+                        hash_parameter = hash(str(parameter))
+                        self.assertNotIn(hash_parameter, parameter_hashes,
+                                         'Parameter of configuration {} already known!'
+                                         .format(file_path))
+                        parameter_hashes.append(hash_parameter)
+
+                        experiment_name = experiments["parameter"]["experiment_name"]
+
+                    elif experiment_type == 'eval-fasttext-based':
+                        counter = counter + 1
+                        experiment_name = experiments["experiment_name"]
+
+                    else:
+                        raise ValueError('Experiment Type {} not maintained!'.format(experiment_type))
+
                     # Check duplicate experiment names!
-                    self.assertNotIn(experiment_name, experiment_names, 'Duplicated experiment name: {}'
-                                     .format(experiment_name))
+                    self.assertNotIn(experiment_name, experiment_names, 'Duplicated experiment name: {} - Hint: file: {}'
+                                     .format(experiment_name, file_path))
 
                     # Check experiment name matches name of configuration file!
                     derived_filename = '{}.json'.format(experiment_name)

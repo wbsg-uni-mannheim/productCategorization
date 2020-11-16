@@ -2,10 +2,8 @@ import pickle
 import time
 from pathlib import Path
 
-from transformers import Trainer
-
 from src.evaluation import evaluation
-from src.evaluation.model_evaluator import ModelEvaluator
+from src.evaluation.evaluator.model_evaluator import ModelEvaluator
 from src.utils.result_collector import ResultCollector
 
 
@@ -17,7 +15,7 @@ class ModelEvaluatorRandomForest(ModelEvaluator):
         self.load_model()
 
     def load_model(self):
-        project_dir = Path(__file__).resolve().parents[2]
+        project_dir = Path(__file__).resolve().parents[3]
         file_path = project_dir.joinpath(self.model_path)
         self.model = pickle.load(open(file_path, "rb"))
 

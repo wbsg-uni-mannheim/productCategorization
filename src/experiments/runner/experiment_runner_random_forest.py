@@ -8,7 +8,7 @@ from sklearn.pipeline import Pipeline
 
 from src.data.preprocessing import preprocess
 from src.evaluation import evaluation
-from src.experiments.experiment_runner import ExperimentRunner
+from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.utils.result_collector import ResultCollector
 
 
@@ -48,14 +48,14 @@ class ExperimentRunnerRandomForest(ExperimentRunner):
         classifier = pipeline.fit(ds_train['title'], ds_train['category'])
 
         y_pred = classifier.predict(ds_test['title'])
-        y_true = ds_test['title'].values
+        y_true = ds_test['category'].values
 
         evaluator = evaluation.HierarchicalEvaluator(self.dataset_name, self.parameter['experiment_name'], None)
         result_collector.results[self.parameter['experiment_name']] = evaluator.compute_metrics(y_true, y_pred)
 
 
         # Save classifier
-        output_file = './experiments/{}/random_forest/results/model/{}.pkl'\
+        output_file = './experiments/{}/random_forest/model/{}.pkl'\
             .format(self.dataset_name, self.parameter['experiment_name'])
         with open(output_file, "wb") as file:
             pickle.dump(classifier, file=file)

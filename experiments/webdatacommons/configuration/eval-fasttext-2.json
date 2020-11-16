@@ -1,0 +1,11 @@
+{ "experiment_name": "eval-fasttext-2",
+  "type" : "eval-fasttext-based",
+  "dataset" : "webdatacommons",
+  "original_dataset" : "icecat",
+  "original_experiment_name" : "fasttext-2",
+  "model_path": "experiments/icecat/fasttext/model/fasttext-2.bin",
+  "encoder_path": "experiments/icecat/fasttext/model/encoder-fasttext-2.pkl",
+  "prediction_output": "experiments/webdatacommons/fasttext/results/webdatacommons-fasttext-2-prediction.pkl",
+  "model_name": "fasttext",
+  "evaluate_on_full_dataset": "True"
+}

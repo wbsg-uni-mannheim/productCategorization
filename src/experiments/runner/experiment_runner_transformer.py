@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 
 from src.evaluation import evaluation
-from src.experiments.experiment_runner import ExperimentRunner
+from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.models.transformers import utils
 from src.models.transformers.category_dataset import CategoryDataset
 from src.utils.result_collector import ResultCollector
@@ -51,7 +51,7 @@ class ExperimentRunnerTransformer(ExperimentRunner):
         timestamp = time.time()
         string_timestamp = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')
         training_args = TrainingArguments(
-            output_dir='./experiments/{}/transformers/results/model/{}'
+            output_dir='./experiments/{}/transformers/model/{}'
                 .format(self.dataset_name, self.parameter['experiment_name']),
             # output directory
             num_train_epochs=self.parameter['epochs'],  # total # of training epochs

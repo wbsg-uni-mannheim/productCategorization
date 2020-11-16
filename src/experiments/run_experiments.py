@@ -4,9 +4,10 @@ import logging
 
 import click
 
-from src.experiments.experiment_runner_dict import ExperimentRunnerDict
-from src.experiments.experiment_runner_random_forest import ExperimentRunnerRandomForest
-from src.experiments.experiment_runner_transformer import ExperimentRunnerTransformer
+from src.experiments.runner.experiment_runner_dict import ExperimentRunnerDict
+from src.experiments.runner.experiment_runner_fasttext import ExperimentRunnerFastText
+from src.experiments.runner.experiment_runner_random_forest import ExperimentRunnerRandomForest
+from src.experiments.runner.experiment_runner_transformer import ExperimentRunnerTransformer
 
 
 @click.command()
@@ -23,6 +24,8 @@ def main(configuration, test, experiment_type):
         runner = ExperimentRunnerTransformer(configuration, test, experiment_type)
     elif experiment_type == 'random-forest-based':
         runner = ExperimentRunnerRandomForest(configuration, test, experiment_type)
+    elif experiment_type == 'fasttext-based':
+        runner = ExperimentRunnerFastText(configuration, test, experiment_type)
     else:
         raise ValueError('Experiment Type {} not defined!'.format(experiment_type))
     runner.run()

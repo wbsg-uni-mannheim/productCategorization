@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from src.experiments.experiment_runner_dict import ExperimentRunnerDict
+from src.experiments.runner.experiment_runner_dict import ExperimentRunnerDict
 
 
 class TestExperimentRunner(unittest.TestCase):

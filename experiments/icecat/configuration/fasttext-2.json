@@ -1,0 +1,14 @@
+{
+  "dataset": "icecat",
+  "parameter":
+    {
+      "experiment_name": "fasttext-2",
+      "model_name": "fasttext",
+      "autotune": "False",
+      "epoch": 50,
+      "lr": 0.9,
+      "wordNgrams": 2,
+      "seed": 42
+    },
+  "type": "fasttext-based"
+}

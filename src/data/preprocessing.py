@@ -46,6 +46,10 @@ def remove_whitespace(text):
     text = re.sub(' +', ' ', text)
     return text.strip()
 
+def remove_line_breaks(text):
+    text = re.sub('\n', '', text)
+    return text.strip()
+
 
 # Exclude for now
 # def replace_contractions(text):
@@ -91,6 +95,7 @@ def preprocess(s):
     s = remove_hyperlinks(s)
     s = remove_html(s)
     # s = replace_contractions(s) - Exclude for now
+    s = remove_line_breaks(s)
     s = remove_special_characters(s)
     s = remove_whitespace(s)
 
