@@ -1,0 +1,11 @@
+{
+  "dataset": "wdc_ziqi",
+  "parameter":
+    {
+      "experiment_name": "fasttext-1",
+      "model_name": "fasttext",
+      "autotune": "True",
+      "seed": 42
+    },
+  "type": "fasttext-based"
+}

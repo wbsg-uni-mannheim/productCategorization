@@ -4,8 +4,11 @@
 def reduce_schema(df_original_dataset):
     df_dataset = df_original_dataset.copy()
 
-    df_dataset.rename(columns={'pathlist_ids': 'path_list', 'CategoryName': 'category',
-                               'desc': 'description'}, inplace=True)
+    df_dataset['path_list'] = df_dataset['lvl1'] + '>' + df_dataset['lvl2'] + '>' + df_dataset['lvl3']
+
+    #Use lvl3 as category for now --> Will change in the near future
+    df_dataset.rename(columns={'Name': 'title', 'lvl3': 'category',
+                               'Description': 'description'}, inplace=True)
 
     # Convert dtype to string
     df_dataset['title'] = df_dataset['title'].astype(str)

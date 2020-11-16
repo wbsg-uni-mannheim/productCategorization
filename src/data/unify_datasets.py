@@ -10,5 +10,7 @@ def reduce_schema(df, dataset):
         return rakuten_unify.reduce_schema(df)
     elif dataset == 'webdatacommons':
         return webdatacommons_unify.reduce_schema(df)
+    elif dataset == 'wdc_ziqi':
+        return webdatacommons_unify.reduce_schema(df)
     else:
         raise ValueError('Schema of Dataset {} is not defined'.format(dataset))
