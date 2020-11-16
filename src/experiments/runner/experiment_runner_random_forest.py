@@ -33,7 +33,7 @@ class ExperimentRunnerRandomForest(ExperimentRunner):
         pipeline = Pipeline([
             ('vect', CountVectorizer(preprocessor=preprocess)),
             ('clf', RandomForestClassifier()),
-        ])
+        ], verbose=1)
 
         # Reduce data if run in test mode:
         if self.test:
