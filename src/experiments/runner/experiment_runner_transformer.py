@@ -2,10 +2,10 @@ from sklearn.preprocessing import LabelEncoder
 import time
 from datetime import datetime
 
-from src.evaluation import evaluation
+from src.evaluation import scorer
 from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.models.transformers import utils
-from src.models.transformers.category_dataset import CategoryDataset
+from src.models.transformers.dataset.category_dataset_flat import CategoryDataset
 from src.utils.result_collector import ResultCollector
 
 from transformers import TrainingArguments, Trainer
@@ -31,6 +31,7 @@ class ExperimentRunnerTransformer(ExperimentRunner):
 
         encoder = LabelEncoder()
         encoder.fit(self.dataset['train']['category'].values)
+        #Replace Encoder!!!
         le_dict = dict(zip(encoder.classes_, encoder.transform(encoder.classes_)))
 
         tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], len(le_dict) + 1)
@@ -70,7 +71,7 @@ class ExperimentRunnerTransformer(ExperimentRunner):
             seed=self.parameter['seed']
         )
 
-        evaluator = evaluation.HierarchicalEvaluator(self.dataset_name, self.parameter['experiment_name'], encoder)
+        evaluator = scorer.HierarchicalEvaluator(self.dataset_name, self.parameter['experiment_name'], encoder)
         trainer = Trainer(
             model=model,  # the instantiated 🤗 Transformers model to be trained
             args=training_args,  # training arguments, defined above

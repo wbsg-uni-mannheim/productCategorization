@@ -1,3 +1,5 @@
+import pickle
+
 import torch
 from torch import nn
 from torch.nn import MSELoss, CrossEntropyLoss
@@ -6,38 +8,53 @@ from transformers.modeling_outputs import SequenceClassifierOutput
 from transformers.modeling_roberta import RobertaPreTrainedModel
 
 
-class RobertaHierarchicalProductClassificationHead(nn.Module):
+class RobertaHierarchicalProductClassificationLCLNHead(nn.Module):
     """Head for sentence-level classification tasks."""
 
-    def __init__(self, config):
+    def __init__(self, config, input_size, hidden_size, output_size):
         super().__init__()
-        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
-        self.dropout = nn.Dropout(config.hidden_dropout_prob)
-        self.out_proj = nn.Linear(config.hidden_size, config.num_labels)
+        self.hidden_size = hidden_size
 
-    def forward(self, features, **kwargs):
-        # To-Do: Add logic for hierarchical classification here!
-        x = features[:, 0, :]  # take <s> token (equiv. to [CLS])
-        x = self.dropout(x)
-        x = self.dense(x)
-        x = torch.tanh(x)
-        x = self.dropout(x)
-        x = self.out_proj(x)
-        return x
+        self.i2h = nn.Linear(input_size + hidden_size, hidden_size)
+        self.i2o = nn.Linear(input_size + hidden_size, output_size)
+        self.softmax = nn.LogSoftmax(dim=1)
+
+        self.tree = None
+        self.root = None
+
+        # TO-DO: Implement own classifier!
+        self.init_tree()
+
+    def forward(self, input, hidden):
+        combined = torch.cat((input, hidden), 1)
+        hidden = self.i2h(combined)
+        output = self.i2o(combined)
+        output = self.softmax(output)
+        return output, hidden
+
+    def initHidden(self):
+        return torch.zeros(1, self.hidden_size)
+
+    def init_tree(self, tree_path):
+
+        with open(tree_path, 'rb') as f:
+            self.tree = pickle.load(f)
+            self.logger.info('Loaded tree from {}!'.format(tree_path))
+
+        self.root = [node[0] for node in self.tree.in_degree if node[1] == 0][0]
 
 class RobertaForHierarchicalClassification(RobertaPreTrainedModel):
     authorized_missing_keys = [r"position_ids"]
 
-    def __init__(self, config):
+    def __init__(self, config, tree_path):
         super().__init__(config)
         self.num_labels = config.num_labels
 
         self.roberta = RobertaModel(config, add_pooling_layer=False)
         # TO-DO: Implement own classifier!
-        self.classifier = RobertaHierarchicalProductClassificationHead(config)
+        self.classifier = RobertaHierarchicalProductClassificationLCLNHead(config)
 
         self.init_weights()
-
 
     def forward(
         self,

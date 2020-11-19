@@ -2,10 +2,10 @@ import time
 from pathlib import Path
 from transformers import RobertaForSequenceClassification, Trainer
 
-from src.evaluation import evaluation
+from src.evaluation import scorer
 from src.evaluation.evaluator.model_evaluator import ModelEvaluator
 from src.models.transformers import utils
-from src.models.transformers.category_dataset import CategoryDataset
+from src.models.transformers.dataset.category_dataset_flat import CategoryDataset
 from src.utils.result_collector import ResultCollector
 
 
@@ -24,7 +24,7 @@ class ModelEvaluatorTransformer(ModelEvaluator):
     def evaluate(self):
         ds_eval = self.prepare_eval_dataset()
 
-        evaluator = evaluation.HierarchicalEvaluator(self.dataset_name, self.experiment_name, self.encoder)
+        evaluator = scorer.HierarchicalEvaluator(self.dataset_name, self.experiment_name, self.encoder)
         trainer = Trainer(
             model=self.model,  # the instantiated 🤗 Transformers model to be trained
             compute_metrics=evaluator.compute_metrics_transformers

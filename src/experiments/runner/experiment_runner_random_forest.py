@@ -7,7 +7,7 @@ from sklearn.pipeline import Pipeline
 
 
 from src.data.preprocessing import preprocess
-from src.evaluation import evaluation
+from src.evaluation import scorer
 from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.utils.result_collector import ResultCollector
 
@@ -20,6 +20,8 @@ class ExperimentRunnerRandomForest(ExperimentRunner):
 
         self.load_experiments(path)
         self.load_datasets()
+
+        self.load_tree()
 
     def load_experiments(self, path):
         """Load experiments defined in the json for which a path is provided"""
@@ -50,8 +52,9 @@ class ExperimentRunnerRandomForest(ExperimentRunner):
         y_pred = classifier.predict(ds_test['title'])
         y_true = ds_test['category'].values
 
-        evaluator = evaluation.HierarchicalEvaluator(self.dataset_name, self.parameter['experiment_name'], None)
-        result_collector.results[self.parameter['experiment_name']] = evaluator.compute_metrics(y_true, y_pred)
+        evaluator = scorer.HierarchicalScorer(self.parameter['experiment_name'], self.tree)
+        result_collector.results[self.parameter['experiment_name']] = \
+            evaluator.compute_metrics_no_encoding(y_true, y_pred)
 
 
         # Save classifier

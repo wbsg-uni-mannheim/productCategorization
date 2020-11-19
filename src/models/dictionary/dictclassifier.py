@@ -10,29 +10,28 @@ from nltk.corpus import wordnet
 
 class DictClassifier(object):
 
-    def __init__(self, dataset, most_frequent_leaf):
+    def __init__(self, dataset, most_frequent_leaf, tree):
 
         self.logger = logging.getLogger(__name__)
 
         self.dataset = dataset
         self.synonyms_dict = None
-        self.tree = None
         self.most_frequent_leaf = most_frequent_leaf
+        self.tree = tree
 
         self.wnl = WordNetLemmatizer()
         self.generate_synonyms(dataset)
         self.logger.info('Initialized Dict-classifier for dataset {}'.format(dataset))
 
+
+
     def generate_synonyms(self, dataset):
 
-        nltk.download('wordnet') # To-Do: Refactor!
-        project_dir = Path(__file__).resolve().parents[3]
-        path_to_tree = project_dir.joinpath('data', 'raw', dataset, 'tree', 'tree_{}.pkl'.format(dataset))
+        nltk.download('wordnet')
 
-        with open(path_to_tree, 'rb') as f:
-            self.tree = pickle.load(f)
-
-        leaf_nodes_wdc = [node[0] for node in self.tree.out_degree if node[1] == 0]
+        leaf_nodes_wdc = [node[0] for node in self.tree.out_degree(self.tree.nodes()) if node[1] == 0]
+        decoder = dict(self.tree.nodes(data="name"))
+        leaf_nodes_wdc = [decoder[node] for node in leaf_nodes_wdc]
 
         self.synonyms_dict = {}
 

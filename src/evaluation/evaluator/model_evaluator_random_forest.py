@@ -2,7 +2,7 @@ import pickle
 import time
 from pathlib import Path
 
-from src.evaluation import evaluation
+from src.evaluation import scorer
 from src.evaluation.evaluator.model_evaluator import ModelEvaluator
 from src.utils.result_collector import ResultCollector
 
@@ -30,7 +30,7 @@ class ModelEvaluatorRandomForest(ModelEvaluator):
         y_pred = ds_eval['prediction'].values
         y_true = ds_eval['title'].values
 
-        evaluator = evaluation.HierarchicalEvaluator(self.dataset_name, self.experiment_name, None)
+        evaluator = scorer.HierarchicalEvaluator(self.dataset_name, self.experiment_name, None)
         result_collector.results[self.experiment_name] = evaluator.compute_metrics(y_true, y_pred)
 
         # Persist prediction

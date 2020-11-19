@@ -6,7 +6,7 @@ from pathlib import Path
 import fasttext
 
 from src.data.preprocessing import preprocess
-from src.evaluation import evaluation
+from src.evaluation import scorer
 from src.evaluation.evaluator.model_evaluator import ModelEvaluator
 from src.utils.result_collector import ResultCollector
 
@@ -64,7 +64,7 @@ class ModelEvaluatorFastText(ModelEvaluator):
         # Postprocess labels
         y_pred = [self.encoder[prediction[0]] for prediction in y_pred]
 
-        evaluator = evaluation.HierarchicalEvaluator(self.dataset_name, self.experiment_name, None)
+        evaluator = scorer.HierarchicalEvaluator(self.dataset_name, self.experiment_name, None)
         result_collector.results[self.experiment_name] = evaluator.compute_metrics(y_true, y_pred)
 
         # Persist prediction

@@ -5,7 +5,7 @@ import fasttext
 import csv
 
 from src.data.preprocessing import preprocess
-from src.evaluation import evaluation
+from src.evaluation import scorer
 from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.utils.result_collector import ResultCollector
 
@@ -18,8 +18,9 @@ class ExperimentRunnerFastText(ExperimentRunner):
 
         self.load_experiments(path)
         self.load_datasets()
-
-        self.encoder = {}
+        self.fasttextencoder = {}
+        
+        self.load_tree()
 
     def load_experiments(self, path):
         """Load experiments defined in the json for which a path is provided"""
@@ -37,7 +38,7 @@ class ExperimentRunnerFastText(ExperimentRunner):
         prepared_categories = ds['category_prepared'].values
 
         prep_keys = dict(set(zip(prepared_categories, orig_categories)))
-        self.encoder = {**self.encoder, **prep_keys}
+        self.fasttextencoder = {**self.fasttextencoder, **prep_keys}
 
         #Use only title for prediction
         ds = ds[['title', 'category_prepared']]
@@ -80,10 +81,10 @@ class ExperimentRunnerFastText(ExperimentRunner):
 
         y_pred, y_prob = classifier.predict(ds_test['title'].values.tolist())
         # Postprocess labels
-        y_pred = [self.encoder[prediction[0]] for prediction in y_pred]
+        y_pred = [self.fasttextencoder[prediction[0]] for prediction in y_pred]
 
-        evaluator = evaluation.HierarchicalEvaluator(self.dataset_name, self.parameter['experiment_name'], None)
-        result_collector.results[self.parameter['experiment_name']] = evaluator.compute_metrics(y_true, y_pred)
+        evaluator = scorer.HierarchicalScorer(self.parameter['experiment_name'], self.tree)
+        result_collector.results[self.parameter['experiment_name']] = evaluator.compute_metrics_no_encoding(y_true, y_pred)
 
 
         # Save classifier
@@ -96,7 +97,7 @@ class ExperimentRunnerFastText(ExperimentRunner):
         output_file = './experiments/{}/fasttext/model/encoder-{}.pkl' \
             .format(self.dataset_name, self.parameter['experiment_name'])
         with open(output_file, "wb") as file:
-            pickle.dump(self.encoder, file=file)
+            pickle.dump(self.fasttextencoder, file=file)
         self.logger.info('Encoder serialized to file {}'.format(output_file))
 
         # Persist results

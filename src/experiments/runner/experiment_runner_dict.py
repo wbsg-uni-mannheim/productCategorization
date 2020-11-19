@@ -4,7 +4,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 
-from src.evaluation import evaluation
+from src.evaluation import scorer
 from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.models.dictionary.dictclassifier import DictClassifier
 
@@ -20,6 +20,7 @@ class ExperimentRunnerDict(ExperimentRunner):
 
         self.load_experiments(path)
         self.load_datasets()
+        self.load_tree()
 
     def load_experiments(self, path):
         """Load experiments defined in the json for which a path is provided"""
@@ -40,7 +41,7 @@ class ExperimentRunnerDict(ExperimentRunner):
         """Run experiments"""
         result_collector = ResultCollector(self.dataset_name, self.experiment_type)
 
-        dict_classifier = DictClassifier(self.dataset_name, self.most_frequent_leaf)
+        dict_classifier = DictClassifier(self.dataset_name, self.most_frequent_leaf, self.tree)
 
         # fallback classifier
         pipeline = Pipeline([
@@ -66,8 +67,9 @@ class ExperimentRunnerDict(ExperimentRunner):
                 self.experiment_type, configuration['synonyms'],
                 configuration['lemmatizing'], configuration['fallback'])
 
-            evaluator = evaluation.HierarchicalEvaluator(self.dataset_name, experiment_name, None)
-            result_collector.results[experiment_name] = evaluator.compute_metrics(y_true, y_pred)
+            evaluator = scorer.HierarchicalScorer(experiment_name, self.tree)
+
+            result_collector.results[experiment_name] = evaluator.compute_metrics_no_encoding(y_true, y_pred)
 
         # Persist results
         timestamp = time.time()
