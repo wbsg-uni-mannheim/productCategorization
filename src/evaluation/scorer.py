@@ -1,4 +1,3 @@
-import numpy as np
 from sklearn.metrics import precision_recall_fscore_support, f1_score
 from networkx import all_pairs_shortest_path_length, relabel_nodes
 from contextlib import contextmanager
@@ -7,21 +6,29 @@ import logging
 import numpy as np
 
 
-def score_traditional(y_true, y_pred, name='Unknown'):
+def score_traditional(gs: list, prediction: list, name='Unknown'):
     logger = logging.getLogger(__name__)
+    logger.debug(gs)
+    logger.debug(prediction)
 
-    w_prec, w_rec, w_f1, support = precision_recall_fscore_support(y_true, y_pred, average='weighted', zero_division=0)
-    f1_macro = f1_score(y_true, y_pred, average='macro')
+
+    w_prec, w_rec, w_f1, support = precision_recall_fscore_support(gs, prediction, average='weighted', zero_division=0)
+    f1_macro = f1_score(gs, prediction, average='macro')
 
     logger.info(
-        "{} | prec_weighted: {:4f} | rec_weighted: {:4f} | f1_weighted: {:4f} | f1_macro: {:4f}".format(
+        "{} - Leaf Nodes: | prec_weighted: {:4f} | rec_weighted: {:4f} | f1_weighted: {:4f} | f1_macro: {:4f}".format(
             name, w_prec, w_rec, w_f1, f1_macro))
 
     return [w_prec, w_rec, w_f1, f1_macro]  # Precision_weighted, Recall_weighted, F1_weighted, F1_macro
 
 
-def score_mwpd(prediction: list, gs: list):
-    return precision_recall_fscore_support(gs, prediction, average='macro', zero_division=0)
+def score_mwpd(gs: list, prediction: list):
+    logger = logging.getLogger(__name__)
+    logger.debug(gs)
+    logger.debug(prediction)
+    macro_scores = precision_recall_fscore_support(gs, prediction, average='macro', zero_division=0)
+    weighted_scores = precision_recall_fscore_support(gs, prediction, average='weighted', zero_division=0)
+    return {'weighted': weighted_scores, 'macro': macro_scores}
 
 
 # Unsure if this is needed!
@@ -115,7 +122,7 @@ def hierarchical_score(y_true, y_pred, tree, root, name='Unknown'):
         if not name:
             return h_fbeta
         else:
-            logger.info("{} | h_f1: {:4f}".format(name, h_fbeta))
+            logger.info("{} - Hierarchy: | h_f1: {:4f}".format(name, h_fbeta))
             return h_fbeta
 
 
@@ -151,11 +158,12 @@ def get_most_important_features(classifier_pipeline_object):
 
 
 class HierarchicalScorer:
-    def __init__(self, experiment_name, tree):
+    def __init__(self, experiment_name, tree, transformer_decoder=None):
         self.logger = logging.getLogger(__name__)
 
         self.experiment_name = experiment_name
         self.tree = tree
+        self.transformer_decoder = transformer_decoder
 
         self.root = [node[0] for node in self.tree.in_degree if node[1] == 0][0]
 
@@ -164,6 +172,7 @@ class HierarchicalScorer:
         predecessor = [k for k in predecessors][0]
 
         if predecessor == self.root:
+            nodes.reverse()
             return nodes
         nodes.append(predecessor)
         return self.determine_path_to_root(nodes)
@@ -203,9 +212,10 @@ class HierarchicalScorer:
         labels = pred.label_ids
         preds = pred.predictions.argmax(-1)
 
-        label_paths, pred_paths = self.determine_label_preds_per_lvl(labels, preds)
+        labels = [self.transformer_decoder[label]['value'] for label in labels]
+        preds = [self.transformer_decoder[pred]['value'] for pred in preds]
 
-        return self.compute_metrics(labels, preds, label_paths, pred_paths)
+        return self.compute_metrics_no_encoding(labels, preds)
 
     def compute_metrics_no_encoding(self, labels, preds):
         decoder = dict(self.tree.nodes(data="name"))
@@ -219,22 +229,25 @@ class HierarchicalScorer:
 
     def compute_metrics(self, labels, preds, labels_per_lvl=None, preds_per_lvl=None):
         """Compute Metrics for leaf nodes and all nodes in the graph separately"""
+        self.logger.debug('Leaf nodes')
         w_prec, w_rec, w_f1, macro_f1 = score_traditional(labels, preds, name=self.experiment_name)  # Score leaf nodes
         h_f_score = hierarchical_score(labels, preds, self.tree, self.root, name=self.experiment_name)
 
-        results = { 'weighted_prec': w_prec,
-                    'weighted_rec': w_rec,
-                    'weighted_f1': w_f1,
-                    'macro_f1': macro_f1,
+        results = { 'leaf_weighted_prec': w_prec,
+                    'leaf_weighted_rec': w_rec,
+                    'leaf_weighted_f1': w_f1,
+                    'leaf_macro_f1': macro_f1,
                     'h_f1': h_f_score}
 
         if not labels_per_lvl and not preds_per_lvl:
             labels_per_lvl, preds_per_lvl = self.determine_label_preds_per_lvl(labels, preds)
 
         counter = 0
-        sum_prec = 0.0
-        sum_rec = 0.0
-        sum_f1 = 0.0
+
+        sum_prec = {'weighted': 0.0, 'macro': 0.0}
+        sum_rec = {'weighted': 0.0, 'macro': 0.0}
+        sum_f1 = {'weighted': 0.0, 'macro': 0.0}
+
 
         for labels_lvl, preds_lvl in zip(labels_per_lvl, preds_per_lvl):
 
@@ -242,17 +255,37 @@ class HierarchicalScorer:
             labels_lvl = [value for value in labels_lvl if value != -1]
             preds_lvl = [value for value in preds_lvl if value != -1]
 
-            prec, rec, f1, support = score_mwpd(labels_lvl, preds_lvl)
-            results['prec_lvl_{}'.format(counter)] = prec
-            results['rec_lvl_{}'.format(counter)] = rec
-            results['f1_lvl_{}'.format(counter)] = f1
+            self.logger.debug('lvl_{}'.format(counter))
+            score_dict = score_mwpd(labels_lvl, preds_lvl)
 
-            sum_prec += prec
-            sum_rec += rec
-            sum_f1 += f1
+            for key in score_dict:
+                prec, rec, f1, support = score_dict[key]
+                results['{}_prec_lvl_{}'.format(key, counter)] = prec
+                results['{}_rec_lvl_{}'.format(key, counter)] = rec
+                results['{}_f1_lvl_{}'.format(key, counter)] = f1
 
-        results['average_prec'] = sum_prec / len(labels_per_lvl)
-        results['average_rec'] = sum_rec / len(labels_per_lvl)
-        results['average_f1'] = sum_f1 / len(labels_per_lvl)
+                self.logger.info(
+                    "{} - Lvl{}: | {}_prec: {:4f} | {}_rec: {:4f} | {}_f1: {:4f}".format(
+                        self.experiment_name, counter, key, prec, key, rec, key, f1 ))
+
+                sum_prec[key] += prec
+                sum_rec[key] += rec
+                sum_f1[key] += f1
+
+
+        for key in sum_prec:
+
+            avg_prec = sum_prec[key] / len(labels_per_lvl)
+            avg_rec = sum_rec[key] / len(labels_per_lvl)
+            avg_f1 = sum_f1[key] / len(labels_per_lvl)
+
+            results['average_{}_prec'.format(key)] = avg_prec
+            results['average_{}_rec'.format(key)] = avg_rec
+            results['average_{}_f1'.format(key)] = avg_f1
+
+            self.logger.info(
+                "{} - {} average: | prec: {:4f} | rec: {:4f} | f1: {:4f}".format(
+                    self.experiment_name, key, avg_prec, avg_rec, avg_f1))
+
 
         return results

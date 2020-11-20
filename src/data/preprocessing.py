@@ -3,6 +3,8 @@ import re
 from bs4 import BeautifulSoup
 import numpy as np
 
+from nltk import WordNetLemmatizer
+
 
 # stopwords are not removed for classification based on product titles according to findings of Yu, Product title
 # classification versus text classification lowercase and ignoring punctuation is default stopwords can be turned on
@@ -46,6 +48,7 @@ def remove_whitespace(text):
     text = re.sub(' +', ' ', text)
     return text.strip()
 
+
 def remove_line_breaks(text):
     text = re.sub('\n', '', text)
     return text.strip()
@@ -77,7 +80,7 @@ def remove_line_breaks(text):
 #    #text = text.lower()
 #    return text
 
-def preprocess(s):
+def preprocess_nils(s):
     a = s
     # print('s',s)
     if type(s) == float:
@@ -100,3 +103,34 @@ def preprocess(s):
     s = remove_whitespace(s)
 
     return s
+
+
+#########################
+# MWPD - Preprocessing
+# https://github.com/ir-ischool-uos/mwpd/blob/master/prodcls/python/src/baseline/fasttext_baseline.py
+#########################
+lemmatizer = WordNetLemmatizer()
+
+def preprocess(text):
+    text = normalize(text)
+    text_parts = tokenize(text)
+
+    return " ".join(text_parts).strip()
+
+def normalize(text):
+    text = re.sub(r'\w+:\/{2}[\d\w-]+(\.[\d\w-]+)*(?:(?:\/[^\s/]*))*', '', text)
+    text = re.sub(r'\W+', ' ', text).strip()
+    return text
+
+
+def tokenize(text):
+    """Removes punctuation & excess whitespace, sets to lowercase,
+    and normalizes text. Returns a list of normalised tokens."""
+    text = " ".join(re.split("[^a-zA-Z0-9]+", text.lower())).strip()
+    tokens = []
+    for t in text.split():
+        if len(t) < 4:
+            tokens.append(t)
+        else:
+            tokens.append(lemmatizer.lemmatize(t))
+    return tokens

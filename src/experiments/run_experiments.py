@@ -7,7 +7,7 @@ import click
 from src.experiments.runner.experiment_runner_dict import ExperimentRunnerDict
 from src.experiments.runner.experiment_runner_fasttext import ExperimentRunnerFastText
 from src.experiments.runner.experiment_runner_random_forest import ExperimentRunnerRandomForest
-from src.experiments.runner.experiment_runner_transformer import ExperimentRunnerTransformer
+from src.experiments.runner.experiment_runner_transformer_flat import ExperimentRunnerTransformer
 
 
 @click.command()

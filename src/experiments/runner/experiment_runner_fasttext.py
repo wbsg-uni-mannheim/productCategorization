@@ -28,8 +28,8 @@ class ExperimentRunnerFastText(ExperimentRunner):
         self.parameter = experiments['parameter']
 
     def prepare_fasttext(self, ds, split):
-        ds['category_prepared'] = ds['category'].str.replace(' ', '_')
-        ds['category_prepared'] = '__label__' + ds['category_prepared'].astype(str)
+        ds['category'] = ds['category'].str.replace(' ', '_')
+        ds['category_prepared'] = '__label__' + ds['category'].astype(str)
 
         #Preprocess Title
         ds['title'] =ds['title'].apply(preprocess)
@@ -47,7 +47,7 @@ class ExperimentRunnerFastText(ExperimentRunner):
         path = './data/processed/{}/fasttext/{}-{}.csv'.format(self.dataset_name, self.parameter['experiment_name'], split)
         ds.to_csv(path, index=False, sep=' ', header=False, quoting=csv.QUOTE_NONE, escapechar=" ")
 
-        return path, ds
+        return path, ds, orig_categories
 
     def run(self):
         """Run experiments"""
@@ -64,12 +64,12 @@ class ExperimentRunnerFastText(ExperimentRunner):
         ds_validate = self.dataset['validate']
         ds_test = self.dataset['test']
 
-        y_true = ds_test['category'].values
-
         #Prepare data
-        train_path, ds_train = self.prepare_fasttext(ds_train, 'train')
-        validate_path, ds_validate = self.prepare_fasttext(ds_validate, 'validate')
-        test_path, ds_test = self.prepare_fasttext(ds_test, 'test')
+        train_path, ds_train, orig_categories_train = self.prepare_fasttext(ds_train, 'train')
+        validate_path, ds_validate, orig_categories_validate = self.prepare_fasttext(ds_validate, 'validate')
+        test_path, ds_test, orig_categories_test  = self.prepare_fasttext(ds_test, 'test')
+
+        y_true = list(orig_categories_validate)
 
         # Use best performing configuration according to Nils' results! - Run more experiments if necessary
         if self.parameter['autotune'] == "True":
@@ -77,9 +77,13 @@ class ExperimentRunnerFastText(ExperimentRunner):
                                                    autotuneMetric="f1")
         else:
             classifier = fasttext.train_supervised(input=train_path, epoch=self.parameter['epoch'],
-                                                   lr=self.parameter['lr'], wordNgrams=self.parameter['wordNgrams'])
+                                                   wordNgrams=self.parameter['wordNgrams'],
+                                                   loss=self.parameter['loss'], minn=self.parameter['minn'],
+                                                   maxn=self.parameter['maxn'], neg=self.parameter['neg'],
+                                                   thread=self.parameter['thread'], dim=self.parameter['dim']
+            )
 
-        y_pred, y_prob = classifier.predict(ds_test['title'].values.tolist())
+        y_pred, y_prob = classifier.predict(ds_validate['title'].values.tolist())
         # Postprocess labels
         y_pred = [self.fasttextencoder[prediction[0]] for prediction in y_pred]
 

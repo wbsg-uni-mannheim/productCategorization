@@ -8,7 +8,7 @@ class TestConfiguration(unittest.TestCase):
 
     def test_unique_configurations(self):
         """Proof configuration to be valid!"""
-        datasets = ['icecat', 'webdatacommons', 'rakuten']
+        datasets = ['icecat', 'webdatacommons', 'rakuten', 'wdc_ziqi']
         project_dir = Path(__file__).resolve().parents[3]
 
         dataset_experiment_name_combination = {}

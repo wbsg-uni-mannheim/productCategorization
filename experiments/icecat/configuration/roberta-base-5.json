@@ -11,7 +11,8 @@
       "model_name": "roberta-base",
       "per_device_train_batch_size": 16,
       "seed": 42,
-      "weight_decay": 0.01
+      "weight_decay": 0.01,
+      "preprocessing": "False"
     },
   "type": "transformer-based"
 }

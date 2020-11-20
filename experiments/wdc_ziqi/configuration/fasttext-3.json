@@ -1,0 +1,20 @@
+{
+  "dataset": "wdc_ziqi",
+  "parameter":
+    {
+      "experiment_name": "fasttext-3",
+      "model_name": "fasttext",
+      "autotune": "False",
+      "epoch": 3000,
+      "lr": 0.9,
+      "wordNgrams": 3,
+      "neg": 10,
+      "loss": "ns",
+      "minn": 4,
+      "maxn": 10,
+      "thread": 30,
+      "dim": 300,
+      "seed": 42
+    },
+  "type": "fasttext-based"
+}

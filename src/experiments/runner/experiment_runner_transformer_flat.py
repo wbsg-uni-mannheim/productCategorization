@@ -1,15 +1,14 @@
-from sklearn.preprocessing import LabelEncoder
 import time
 from datetime import datetime
 
+from src.data.preprocessing import preprocess
 from src.evaluation import scorer
 from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.models.transformers import utils
-from src.models.transformers.dataset.category_dataset_flat import CategoryDataset
+from src.models.transformers.dataset.category_dataset_flat import CategoryDatasetFlat
 from src.utils.result_collector import ResultCollector
 
 from transformers import TrainingArguments, Trainer
-
 
 
 class ExperimentRunnerTransformer(ExperimentRunner):
@@ -20,21 +19,41 @@ class ExperimentRunnerTransformer(ExperimentRunner):
         self.load_experiments(path)
         self.load_datasets()
 
+        self.load_tree()
+
     def load_experiments(self, path):
         """Load experiments defined in the json for which a path is provided"""
         experiments = self.load_configuration(path)
         self.parameter = experiments['parameter']
 
+    def encode_labels(self):
+        """Encode & decode labels plus rescale encoded values"""
+        normalized_encoder = {}
+        normalized_decoder = {}
+        decoder = dict(self.tree.nodes(data="name"))
+        encoder = dict([(value, key) for key, value in decoder.items()])
+
+        leaf_nodes = [node[0] for node in self.tree.out_degree(self.tree.nodes()) if node[1] == 0]
+        leaf_nodes = [decoder[node] for node in leaf_nodes]
+        number_leaf_nodes = len(leaf_nodes)
+
+        # Rescale keys!
+        counter = 0
+        for key in encoder:
+            if key in leaf_nodes:
+                normalized_encoder[key] = {'original_key': encoder[key], 'derived_key': counter}
+                normalized_decoder[counter] = {'original_key': encoder[key], 'value': key}
+                counter += 1
+
+        return normalized_encoder, normalized_decoder, number_leaf_nodes
+
     def run(self):
         """Run experiments"""
         result_collector = ResultCollector(self.dataset_name, self.experiment_type)
 
-        encoder = LabelEncoder()
-        encoder.fit(self.dataset['train']['category'].values)
-        #Replace Encoder!!!
-        le_dict = dict(zip(encoder.classes_, encoder.transform(encoder.classes_)))
+        normalized_encoder, normalized_decoder, number_leaf_nodes = self.encode_labels()
 
-        tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], len(le_dict) + 1)
+        tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], number_leaf_nodes)
 
         tf_ds = {}
         for key in self.dataset:
@@ -44,10 +63,15 @@ class ExperimentRunnerTransformer(ExperimentRunner):
                 df_ds = df_ds[:50]
                 self.logger.warning('Run in test mode - dataset reduced to 50 records!')
 
-            texts = list(df_ds['title'].values)
-            labels = list(df_ds['category'].values)
+            if self.parameter['preprocessing'] == "True":
+                texts = [preprocess(value) for value in df_ds['title'].values]
+            else:
+                texts = list(df_ds['title'].values)
 
-            tf_ds[key] = CategoryDataset(texts, labels, tokenizer, le_dict)
+            # Normalize label values
+            labels = [value.replace(' ', '_') for value in df_ds['category'].values]
+
+            tf_ds[key] = CategoryDatasetFlat(texts, labels, tokenizer, normalized_encoder)
 
         timestamp = time.time()
         string_timestamp = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')
@@ -65,19 +89,20 @@ class ExperimentRunnerTransformer(ExperimentRunner):
             logging_dir='./experiments/{}/transformers/logs-{}'.format(self.dataset_name, string_timestamp),
             # directory for storing logs
             save_total_limit=5,  # Save only the last 5 Checkpoints
-            metric_for_best_model=self.parameter['metric_for_best_model'],
+            #metric_for_best_model=self.parameter['metric_for_best_model'],
             load_best_model_at_end=True,
             gradient_accumulation_steps=self.parameter['gradient_accumulation_steps'],
             seed=self.parameter['seed']
         )
 
-        evaluator = scorer.HierarchicalEvaluator(self.dataset_name, self.parameter['experiment_name'], encoder)
+        evaluator = scorer.HierarchicalScorer(self.parameter['experiment_name'], self.tree,
+                                              transformer_decoder=normalized_decoder)
         trainer = Trainer(
             model=model,  # the instantiated 🤗 Transformers model to be trained
             args=training_args,  # training arguments, defined above
             train_dataset=tf_ds['train'],  # tensorflow_datasets training dataset
-            eval_dataset=tf_ds['validate'],  # tensorflow_datasets evaluation dataset
-            compute_metrics=evaluator.compute_metrics_transformers
+            eval_dataset=tf_ds['validate']  # tensorflow_datasets evaluation dataset
+            #compute_metrics=evaluator.compute_metrics_transformers_flat
         )
 
         trainer.train()
