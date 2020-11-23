@@ -218,11 +218,14 @@ class HierarchicalScorer:
         return self.compute_metrics_no_encoding(labels, preds)
 
     def compute_metrics_transformers_hierarchy(self, pred):
-        labels_per_lvl = pred.label_ids
-        preds_per_lvl = [prediction.argmax(-1) for prediction in pred.predictions]
+        labels_paths = pred.label_ids
+        preds_paths = [list(prediction.argmax(-1)) for prediction in pred.predictions]
 
-        labels = [label[-1] for label in labels_per_lvl]
-        preds = [pred[-1] for pred in preds_per_lvl]
+        labels = [label[-1] for label in labels_paths]
+        preds = [pred[-1] for pred in preds_paths]
+
+        labels_per_lvl = np.array(labels_paths).transpose().tolist()
+        preds_per_lvl = np.array(preds_paths).transpose().tolist()
 
         return self.compute_metrics(labels, preds, labels_per_lvl, preds_per_lvl)
 
