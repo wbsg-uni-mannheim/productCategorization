@@ -51,7 +51,8 @@ class RobertaRNNHead(nn.Module):
         return output, hidden
 
     def initHidden(self, size):
-        return torch.zeros(size, self.hidden_size)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        return torch.zeros(size, self.hidden_size).to(device)
 
 class RobertaForHierarchicalClassificationRNN(RobertaPreTrainedModel):
     authorized_missing_keys = [r"position_ids"]
@@ -62,8 +63,8 @@ class RobertaForHierarchicalClassificationRNN(RobertaPreTrainedModel):
 
         self.roberta = RobertaModel(config, add_pooling_layer=False)
 
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.classifier = RobertaRNNHead(config).to(device=device)
+
+        self.classifier = RobertaRNNHead(config)
 
         self.init_weights()
 
