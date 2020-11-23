@@ -46,6 +46,16 @@ class TestConfiguration(unittest.TestCase):
 
                         experiment_name = parameter["experiment_name"]
 
+                    elif experiment_type == 'transformer-based-hierarchy':
+                        counter = counter + 1
+                        parameter = experiments["parameter"]
+                        hash_parameter = hash(str(parameter))
+                        self.assertNotIn(hash_parameter, parameter_hashes, 'Parameter of configuration {} already known!'
+                                         .format(file_path))
+                        parameter_hashes.append(hash_parameter)
+
+                        experiment_name = parameter["experiment_name"]
+
                     elif experiment_type == 'eval-transformer-based':
                         counter = counter + 1
                         experiment_name = experiments["experiment_name"]

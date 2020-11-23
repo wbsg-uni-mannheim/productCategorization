@@ -45,7 +45,9 @@ class TestMakeDataSet(unittest.TestCase):
         preds = [encoder[pred] for pred in preds]
 
         # To-Do: change input [labels], [preds](!)
-        scores = evaluator.compute_metrics(labels, preds)
+        labels_per_lvl, preds_per_lvl = evaluator.determine_label_preds_per_lvl(labels, preds)
+
+        scores = evaluator.compute_metrics(labels, preds, labels_per_lvl, preds_per_lvl)
 
         self.assertEqual(precision, round(scores['leaf_weighted_prec'], 2))
         self.assertEqual(recall, round(scores['leaf_weighted_rec'], 2))

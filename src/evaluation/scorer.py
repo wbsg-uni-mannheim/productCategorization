@@ -234,9 +234,11 @@ class HierarchicalScorer:
         pp_labels = [encoder[label] for label in labels]
         pp_preds = [encoder[pred] for pred in preds]
 
-        return self.compute_metrics(pp_labels, pp_preds)
+        labels_per_lvl, preds_per_lvl = self.determine_label_preds_per_lvl(pp_labels, pp_preds)
 
-    def compute_metrics(self, labels, preds, labels_per_lvl=None, preds_per_lvl=None):
+        return self.compute_metrics(pp_labels, pp_preds, labels_per_lvl, preds_per_lvl)
+
+    def compute_metrics(self, labels, preds, labels_per_lvl, preds_per_lvl):
         """Compute Metrics for leaf nodes and all nodes in the graph separately"""
         self.logger.debug('Leaf nodes')
         w_prec, w_rec, w_f1, macro_f1 = score_traditional(labels, preds, name=self.experiment_name)  # Score leaf nodes
@@ -247,9 +249,6 @@ class HierarchicalScorer:
                     'leaf_weighted_f1': w_f1,
                     'leaf_macro_f1': macro_f1,
                     'h_f1': h_f_score}
-
-        if labels_per_lvl is not None and preds_per_lvl is not None:
-            labels_per_lvl, preds_per_lvl = self.determine_label_preds_per_lvl(labels, preds)
 
         counter = 0
 

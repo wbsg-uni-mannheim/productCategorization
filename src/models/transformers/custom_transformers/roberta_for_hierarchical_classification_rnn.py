@@ -61,7 +61,9 @@ class RobertaForHierarchicalClassificationRNN(RobertaPreTrainedModel):
         self.num_labels = config.num_labels
 
         self.roberta = RobertaModel(config, add_pooling_layer=False)
-        self.classifier = RobertaRNNHead(config)
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.classifier = RobertaRNNHead(config).to(device=device)
 
         self.init_weights()
 
