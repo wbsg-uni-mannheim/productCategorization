@@ -50,10 +50,10 @@ class RobertaRNNHead(nn.Module):
 
         return output, hidden
 
-    def initHidden(self):
-        return torch.zeros(1, self.hidden_size)
+    def initHidden(self, size):
+        return torch.zeros(size, self.hidden_size)
 
-class RobertaForSequenceClassification(RobertaPreTrainedModel):
+class RobertaForHierarchicalClassificationRNN(RobertaPreTrainedModel):
     authorized_missing_keys = [r"position_ids"]
 
     def __init__(self, config):
@@ -64,10 +64,6 @@ class RobertaForSequenceClassification(RobertaPreTrainedModel):
         self.classifier = RobertaRNNHead(config)
 
         self.init_weights()
-
-        #Initialize RNNHead
-        self.hidden_rnn = self.classifier.initHidden()
-        self.classifier.zero_grad()
 
     def forward(
         self,
@@ -101,24 +97,29 @@ class RobertaForSequenceClassification(RobertaPreTrainedModel):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
         )
-        print(labels)
 
-        sequence_output = outputs[0][:, 0, :]  # take <s> token (equiv. to [CLS])
+        sequence_output = outputs[0][:, 0, :].view(-1,768)  # take <s> token (equiv. to [CLS])
 
         loss = None
-        logit_list = []
-        for i in range(len(labels)):
-            logits_lvl, hidden = self.classifier(sequence_output, self.hidden_rnn)
+        logits_list = []
+        transposed_labels = torch.transpose(labels,0, 1)
+        hidden = self.classifier.initHidden(len(labels))
+        #Initialize RNNHead
+        self.classifier.zero_grad()
 
-            logit_list.append(logits_lvl)
+        for i in range(len(transposed_labels)):
+            logits_lvl, hidden = self.classifier(sequence_output, hidden)
+
+            logits_list.append(logits_lvl)
 
             loss_fct = CrossEntropyLoss()
             if loss is None:
-                loss = loss_fct(logit_list[i].view(-1, self.num_labels), labels[i].view(-1))
+                loss = loss_fct(logits_list[i].view(-1, self.num_labels), transposed_labels[i].view(-1))
             else:
-                loss =+ loss_fct(logit_list[i].view(-1, self.num_labels), labels[i].view(-1))
+                loss += loss_fct(logits_list[i].view(-1, self.num_labels), transposed_labels[i].view(-1))
 
-        logits = tuple(logit_list)
+        logits = torch.stack(logits_list)
+        logits = torch.transpose(logits, 0, 1)
 
         if not return_dict:
             output = (logits,) + outputs[2:]

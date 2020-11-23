@@ -6,12 +6,13 @@ from src.evaluation import scorer
 from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.models.transformers import utils
 from src.models.transformers.dataset.category_dataset_flat import CategoryDatasetFlat
+from src.models.transformers.dataset.category_dataset_multi_label import CategoryDatasetMultiLabel
 from src.utils.result_collector import ResultCollector
 
 from transformers import TrainingArguments, Trainer
 
 
-class ExperimentRunnerTransformer(ExperimentRunner):
+class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
 
     def __init__(self, path, test, experiment_type):
         super().__init__(path, test, experiment_type)
@@ -26,6 +27,16 @@ class ExperimentRunnerTransformer(ExperimentRunner):
         experiments = self.load_configuration(path)
         self.parameter = experiments['parameter']
 
+    def determine_path_to_root(self, nodes):
+        predecessors = self.tree.predecessors(nodes[-1])
+        predecessor = [k for k in predecessors][0]
+
+        if predecessor == self.root:
+            nodes.reverse()
+            return nodes
+        nodes.append(predecessor)
+        return self.determine_path_to_root(nodes)
+
     def encode_labels(self):
         """Encode & decode labels plus rescale encoded values"""
         normalized_encoder = {}
@@ -35,17 +46,19 @@ class ExperimentRunnerTransformer(ExperimentRunner):
 
         leaf_nodes = [node[0] for node in self.tree.out_degree(self.tree.nodes()) if node[1] == 0]
         leaf_nodes = [decoder[node] for node in leaf_nodes]
-        number_leaf_nodes = len(leaf_nodes)
 
-        # Rescale keys!
         counter = 0
         for key in encoder:
             if key in leaf_nodes:
-                normalized_encoder[key] = {'original_key': encoder[key], 'derived_key': counter}
+                nodes = self.determine_path_to_root([encoder[key]])
+                normalized_encoder[key] = {'original_key': encoder[key], 'derived_key': counter, 'derived_path': nodes}
                 normalized_decoder[counter] = {'original_key': encoder[key], 'value': key}
                 counter += 1
 
-        return normalized_encoder, normalized_decoder, number_leaf_nodes
+        # Total number of labels is determined by the number of labels in the tree
+        number_of_labels = len(self.tree)
+
+        return normalized_encoder, normalized_decoder, number_of_labels
 
     def run(self):
         """Run experiments"""
@@ -60,8 +73,8 @@ class ExperimentRunnerTransformer(ExperimentRunner):
             df_ds = self.dataset[key]
             if self.test:
                 # load only subset of the data
-                df_ds = df_ds[:50]
-                self.logger.warning('Run in test mode - dataset reduced to 50 records!')
+                df_ds = df_ds[:20]
+                self.logger.warning('Run in test mode - dataset reduced to 20 records!')
 
             if self.parameter['preprocessing'] == "True":
                 texts = [preprocess(value) for value in df_ds['title'].values]
@@ -71,7 +84,7 @@ class ExperimentRunnerTransformer(ExperimentRunner):
             # Normalize label values
             labels = [value.replace(' ', '_') for value in df_ds['category'].values]
 
-            tf_ds[key] = CategoryDatasetFlat(texts, labels, tokenizer, normalized_encoder)
+            tf_ds[key] = CategoryDatasetMultiLabel(texts, labels, tokenizer, normalized_encoder)
 
         timestamp = time.time()
         string_timestamp = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')
@@ -102,7 +115,7 @@ class ExperimentRunnerTransformer(ExperimentRunner):
             args=training_args,  # training arguments, defined above
             train_dataset=tf_ds['train'],  # tensorflow_datasets training dataset
             eval_dataset=tf_ds['validate'],  # tensorflow_datasets evaluation dataset
-            compute_metrics=evaluator.compute_metrics_transformers_flat
+            compute_metrics=evaluator.compute_metrics_transformers_hierarchy
         )
 
         trainer.train()

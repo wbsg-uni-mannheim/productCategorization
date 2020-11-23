@@ -11,7 +11,7 @@ from src.utils.result_collector import ResultCollector
 from transformers import TrainingArguments, Trainer
 
 
-class ExperimentRunnerTransformer(ExperimentRunner):
+class ExperimentRunnerTransformerFlat(ExperimentRunner):
 
     def __init__(self, path, test, experiment_type):
         super().__init__(path, test, experiment_type)

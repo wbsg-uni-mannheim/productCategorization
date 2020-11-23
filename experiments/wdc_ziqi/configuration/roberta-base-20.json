@@ -2,17 +2,17 @@
   "dataset": "wdc_ziqi",
   "parameter":
     {
-      "epochs": 13,
+      "epochs": 3,
       "evaluate_WDC": "True",
-      "experiment_name": "roberta-base-15",
+      "experiment_name": "roberta-base-20",
       "gradient_accumulation_steps": 2,
       "learning_rate": 5e-5,
       "metric_for_best_model": "h_f1",
-      "model_name": "roberta-base",
+      "model_name": "roberta-base-hierarchy-rnn",
       "per_device_train_batch_size": 8,
       "seed": 42,
       "weight_decay": 0.01,
       "preprocessing": "True"
     },
-  "type": "transformer-based"
+  "type": "transformer-based-hierarchy"
 }

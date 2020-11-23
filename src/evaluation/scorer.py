@@ -217,6 +217,15 @@ class HierarchicalScorer:
 
         return self.compute_metrics_no_encoding(labels, preds)
 
+    def compute_metrics_transformers_hierarchy(self, pred):
+        labels_per_lvl = pred.label_ids
+        preds_per_lvl = [prediction.argmax(-1) for prediction in pred.predictions]
+
+        labels = [label[-1] for label in labels_per_lvl]
+        preds = [pred[-1] for pred in preds_per_lvl]
+
+        return self.compute_metrics(labels, preds, labels_per_lvl, preds_per_lvl)
+
     def compute_metrics_no_encoding(self, labels, preds):
         decoder = dict(self.tree.nodes(data="name"))
         encoder = dict([(value, key) for key, value in decoder.items()])
@@ -239,7 +248,7 @@ class HierarchicalScorer:
                     'leaf_macro_f1': macro_f1,
                     'h_f1': h_f_score}
 
-        if not labels_per_lvl and not preds_per_lvl:
+        if labels_per_lvl is not None and preds_per_lvl is not None:
             labels_per_lvl, preds_per_lvl = self.determine_label_preds_per_lvl(labels, preds)
 
         counter = 0

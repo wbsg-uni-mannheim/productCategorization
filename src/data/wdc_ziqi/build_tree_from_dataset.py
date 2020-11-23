@@ -20,8 +20,10 @@ def main():
     inserted_nodes += 1
 
     count = 0
-    files = ["data/raw/wdc_ziqi/train.json", "data/raw/wdc_ziqi/validation.json"]
+    files = ["data/raw/wdc_ziqi/train.json", "data/raw/wdc_ziqi/validation.json", "data/raw/wdc_ziqi/task2_testset_with_labels.json"]
+
     for file in files:
+        new_nodes = []
         with open(file) as fp:
             while True:
                 count += 1
@@ -49,9 +51,12 @@ def main():
                         dict_nodes[node] = inserted_nodes
                         G.add_node(dict_nodes[node], name=node)
                         G.add_edge(dict_nodes[predecessor], dict_nodes[node])
+                        new_nodes.append(node)
                         inserted_nodes += 1
 
+        print(new_nodes)
     print(G.nodes(data=True))
+
     # Save tree
     with open("./data/raw/wdc_ziqi/tree/tree_wdc_ziqi.pkl", "wb") as file:
         pickle.dump(G, file=file)

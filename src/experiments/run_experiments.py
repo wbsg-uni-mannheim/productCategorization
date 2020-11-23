@@ -7,7 +7,8 @@ import click
 from src.experiments.runner.experiment_runner_dict import ExperimentRunnerDict
 from src.experiments.runner.experiment_runner_fasttext import ExperimentRunnerFastText
 from src.experiments.runner.experiment_runner_random_forest import ExperimentRunnerRandomForest
-from src.experiments.runner.experiment_runner_transformer_flat import ExperimentRunnerTransformer
+from src.experiments.runner.experiment_runner_transformer_flat import ExperimentRunnerTransformerFlat
+from src.experiments.runner.experiment_runner_transformer_hierarchy import ExperimentRunnerTransformerHierarchy
 
 
 @click.command()
@@ -21,7 +22,9 @@ def main(configuration, test, experiment_type):
     if experiment_type == 'dict-based':
         runner = ExperimentRunnerDict(configuration, test, experiment_type)
     elif experiment_type == 'transformer-based':
-        runner = ExperimentRunnerTransformer(configuration, test, experiment_type)
+        runner = ExperimentRunnerTransformerFlat(configuration, test, experiment_type)
+    elif experiment_type == 'transformer-based-hierarchy':
+        runner = ExperimentRunnerTransformerHierarchy(configuration, test, experiment_type)
     elif experiment_type == 'random-forest-based':
         runner = ExperimentRunnerRandomForest(configuration, test, experiment_type)
     elif experiment_type == 'fasttext-based':

@@ -19,7 +19,7 @@ def main():
     inserted_nodes += 1
 
     count = 0
-    with open("./data/raw/wdc_ziqi/en_2020-06/EN/GS1 Combined Published_Schema as at 01062020 EN.txt") as fp:
+    with open("data/raw/wdc_ziqi/GS1 Combined Published Schema as at 01122014/GS1 Combined Published_Schema as at 01122014.txt") as fp:
         while True:
             count += 1
             line = fp.readline()
@@ -36,9 +36,9 @@ def main():
                 line_parts = line.split('\t')
 
                 # Create labels
-                lvl1 = '_'.join([line_parts[0], line_parts[1]])
-                lvl2 = '_'.join([line_parts[2], line_parts[3]])
-                lvl3 = '_'.join([line_parts[4], line_parts[5]])
+                lvl1 = '_'.join([line_parts[0], line_parts[1]]).replace(' ', '_')
+                lvl2 = '_'.join([line_parts[2], line_parts[3]]).replace(' ', '_')
+                lvl3 = '_'.join([line_parts[4], line_parts[5]]).replace(' ', '_')
 
                 # Add labels to graph
                 nodes = [lvl1, lvl2, lvl3]
