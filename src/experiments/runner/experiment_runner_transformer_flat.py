@@ -89,7 +89,7 @@ class ExperimentRunnerTransformer(ExperimentRunner):
             logging_dir='./experiments/{}/transformers/logs-{}'.format(self.dataset_name, string_timestamp),
             # directory for storing logs
             save_total_limit=5,  # Save only the last 5 Checkpoints
-            #metric_for_best_model=self.parameter['metric_for_best_model'],
+            metric_for_best_model=self.parameter['metric_for_best_model'],
             load_best_model_at_end=True,
             gradient_accumulation_steps=self.parameter['gradient_accumulation_steps'],
             seed=self.parameter['seed']
@@ -101,8 +101,8 @@ class ExperimentRunnerTransformer(ExperimentRunner):
             model=model,  # the instantiated 🤗 Transformers model to be trained
             args=training_args,  # training arguments, defined above
             train_dataset=tf_ds['train'],  # tensorflow_datasets training dataset
-            eval_dataset=tf_ds['validate']  # tensorflow_datasets evaluation dataset
-            #compute_metrics=evaluator.compute_metrics_transformers_flat
+            eval_dataset=tf_ds['validate'],  # tensorflow_datasets evaluation dataset
+            compute_metrics=evaluator.compute_metrics_transformers_flat
         )
 
         trainer.train()
