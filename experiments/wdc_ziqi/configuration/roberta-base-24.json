@@ -2,9 +2,9 @@
   "dataset": "wdc_ziqi",
   "parameter":
     {
-      "epochs": 20,
+      "epochs": 25,
       "evaluate_WDC": "True",
-      "experiment_name": "roberta-base-22",
+      "experiment_name": "roberta-base-24",
       "gradient_accumulation_steps": 2,
       "learning_rate": 5e-5,
       "metric_for_best_model": "h_f1",
