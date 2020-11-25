@@ -8,10 +8,10 @@ from src.models.transformers import utils
 from src.models.transformers.dataset.category_dataset_multi_label import CategoryDatasetMultiLabel
 from src.utils.result_collector import ResultCollector
 
-from transformers import TrainingArguments, Trainer, RobertaConfig
+from transformers import TrainingArguments, Trainer
 
 
-class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
+class ExperimentRunnerTransformerRNN(ExperimentRunner):
 
     def __init__(self, path, test, experiment_type):
         super().__init__(path, test, experiment_type)
@@ -36,30 +36,22 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
         nodes.append(predecessor)
         return self.determine_path_to_root(nodes)
 
-    def normalize_path_from_root_per_level(self, path):
-        """Normalize label values per level"""
+    def normalize_path_from_root_per_parent(self, path):
+        """Normalize label values per parent node"""
+        found_successor = self.root
         normalized_path = []
-        for i in range(len(path)):
+        for searched_successor in path:
             counter = 0
-            nodes_per_lvl = self.get_all_nodes_per_lvl(i)
-            for node in nodes_per_lvl:
+            successors = self.tree.successors(found_successor)
+            for successor in successors:
                 counter += 1
-                if node == path[i]:
+                if searched_successor == successor:
                     normalized_path.append(counter)
+                    found_successor = searched_successor
                     break
 
         assert (len(path) == len(normalized_path))
         return normalized_path
-
-    def get_all_nodes_per_lvl(self, level):
-        successors = self.tree.successors(self.root)
-        while level > 0:
-            next_lvl_succesors = []
-            for successor in successors:
-                next_lvl_succesors.extend(self.tree.successors(successor))
-            successors = next_lvl_succesors
-            level -= 1
-        return successors
 
     def encode_labels(self):
         """Encode & decode labels plus rescale encoded values"""
@@ -72,39 +64,29 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
         leaf_nodes = [decoder[node] for node in leaf_nodes]
 
         counter = 0
-        longest_path = 0
         for key in encoder:
             if key in leaf_nodes:
                 path = self.determine_path_to_root([encoder[key]])
-
-                #Normalize Path per level in hierarchy
-                path = self.normalize_path_from_root_per_level(path)
+                if 'exploit_hierarchy' in self.parameter and self.parameter['exploit_hierarchy'] == "True":
+                    path = self.normalize_path_from_root_per_parent(path)
 
                 normalized_encoder[key] = {'original_key': encoder[key], 'derived_key': counter,
                                            'derived_path': path}
                 normalized_decoder[counter] = {'original_key': encoder[key], 'value': key}
                 counter += 1
-                if len(path) > longest_path:
-                    longest_path = len(path)
 
-        # Number of labels per level is determined via the tree
-        num_labels_per_level = {}
-        for i in range(longest_path):
-            # Number of labels per level plus 1 for out of hierarchy nodes
-            num_labels_per_level[i+1] = len([node for node in self.get_all_nodes_per_lvl(i)]) + 1
+        # Total number of labels is determined by the number of labels in the tree
+        number_of_labels = len(self.tree)
 
-        return normalized_encoder, normalized_decoder, num_labels_per_level
+        return normalized_encoder, normalized_decoder, number_of_labels
 
     def run(self):
         """Run experiments"""
         result_collector = ResultCollector(self.dataset_name, self.experiment_type)
 
-        normalized_encoder, normalized_decoder, num_labels_per_level = self.encode_labels()
+        normalized_encoder, normalized_decoder, number_leaf_nodes = self.encode_labels()
 
-        config = RobertaConfig.from_pretrained("roberta-base")
-        config.num_labels_per_level = num_labels_per_level
-
-        tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], config=config)
+        tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], number_leaf_nodes)
 
         tf_ds = {}
         for key in self.dataset:
@@ -147,13 +129,13 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
         )
 
         evaluator = scorer.HierarchicalScorer(self.parameter['experiment_name'], self.tree,
-                                              transformer_decoder=normalized_decoder, num_labels_per_level= num_labels_per_level)
+                                              transformer_decoder=normalized_decoder)
         trainer = Trainer(
             model=model,  # the instantiated 🤗 Transformers model to be trained
             args=training_args,  # training arguments, defined above
             train_dataset=tf_ds['train'],  # tensorflow_datasets training dataset
             eval_dataset=tf_ds['validate'],  # tensorflow_datasets evaluation dataset
-            compute_metrics=evaluator.compute_metrics_transformers_hierarchy
+            compute_metrics=evaluator.compute_metrics_transformers_rnn
         )
 
         trainer.train()

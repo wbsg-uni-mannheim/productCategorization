@@ -8,6 +8,7 @@ from src.experiments.runner.experiment_runner_dict import ExperimentRunnerDict
 from src.experiments.runner.experiment_runner_fasttext import ExperimentRunnerFastText
 from src.experiments.runner.experiment_runner_random_forest import ExperimentRunnerRandomForest
 from src.experiments.runner.experiment_runner_transformer_flat import ExperimentRunnerTransformerFlat
+from src.experiments.runner.experiment_runner_transformer_rnn import ExperimentRunnerTransformerRNN
 from src.experiments.runner.experiment_runner_transformer_hierarchy import ExperimentRunnerTransformerHierarchy
 
 
@@ -23,6 +24,8 @@ def main(configuration, test, experiment_type):
         runner = ExperimentRunnerDict(configuration, test, experiment_type)
     elif experiment_type == 'transformer-based':
         runner = ExperimentRunnerTransformerFlat(configuration, test, experiment_type)
+    elif experiment_type == 'transformer-based-rnn':
+        runner = ExperimentRunnerTransformerRNN(configuration, test, experiment_type)
     elif experiment_type == 'transformer-based-hierarchy':
         runner = ExperimentRunnerTransformerHierarchy(configuration, test, experiment_type)
     elif experiment_type == 'random-forest-based':

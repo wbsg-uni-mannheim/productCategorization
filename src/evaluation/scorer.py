@@ -158,12 +158,13 @@ def get_most_important_features(classifier_pipeline_object):
 
 
 class HierarchicalScorer:
-    def __init__(self, experiment_name, tree, transformer_decoder=None):
+    def __init__(self, experiment_name, tree, transformer_decoder=None, num_labels_per_level=None):
         self.logger = logging.getLogger(__name__)
 
         self.experiment_name = experiment_name
         self.tree = tree
         self.transformer_decoder = transformer_decoder
+        self.num_labels_per_lvl = num_labels_per_level
 
         self.root = [node[0] for node in self.tree.in_degree if node[1] == 0][0]
 
@@ -207,6 +208,16 @@ class HierarchicalScorer:
 
         return label_per_lvl, preds_per_lvl
 
+    #Taken from experiment runner --> Refactor - consolidate functions
+    def get_all_nodes_per_lvl(self, level):
+        successors = self.tree.successors(self.root)
+        while level > 0:
+            next_lvl_succesors = []
+            for successor in successors:
+                next_lvl_succesors.extend(self.tree.successors(successor))
+            successors = next_lvl_succesors
+            level -= 1
+        return successors
 
     def compute_metrics_transformers_flat(self, pred):
         labels = pred.label_ids
@@ -218,6 +229,37 @@ class HierarchicalScorer:
         return self.compute_metrics_no_encoding(labels, preds)
 
     def compute_metrics_transformers_hierarchy(self, pred):
+        labels_paths = pred.label_ids
+        preds_paths = []
+        for prediction in pred.predictions:
+            pred_path = []
+            for i in range(len(prediction)):
+                # Cut additional zeros!
+                pred = prediction[i][:self.num_labels_per_lvl[i+1]].argmax(-1)
+                pred_path.append(pred)
+            preds_paths.append(pred_path)
+
+        # Decode hierarchy lvl labels
+        for i in range(len(labels_paths[0])):
+            nodes = list(self.get_all_nodes_per_lvl(i))
+            for label_path in labels_paths:
+                if label_path[i] > 0: # Keep 0 (out of category)
+                    label_path[i] = nodes[label_path[i] - 1]
+            for preds_path in preds_paths:
+                if label_path[i] > 0: # Keep 0 (out of category)
+                    preds_path[i] = nodes[preds_path[i] - 1]
+
+        print(labels_paths[0])
+        labels = [label_path[-1] for label_path in labels_paths]
+        preds = [pred_path[-1] for pred_path in preds_paths]
+
+
+        labels_per_lvl = np.array(labels_paths).transpose().tolist()
+        preds_per_lvl = np.array(preds_paths).transpose().tolist()
+
+        return self.compute_metrics(labels, preds, labels_per_lvl, preds_per_lvl)
+
+    def compute_metrics_transformers_rnn(self, pred):
         labels_paths = pred.label_ids
         preds_paths = [list(prediction.argmax(-1)) for prediction in pred.predictions]
 

@@ -36,7 +36,11 @@ class TestConfiguration(unittest.TestCase):
                     self.assertEqual(dataset_name, ds_name, msg)
 
                     experiment_type = experiments["type"]
-                    if experiment_type == 'transformer-based':
+                    new_model_experiment_types = ['transformer-based', 'transformer-based-hierarchy', 'transformer-based-rnn',
+                                                  'random-forest-based', 'fasttext-based']
+                    eval_experiment_types = ['eval-transformer-based', 'eval-random-forest-based', 'eval-fasttext-based']
+
+                    if experiment_type in new_model_experiment_types:
                         counter = counter + 1
                         parameter = experiments["parameter"]
                         hash_parameter = hash(str(parameter))
@@ -46,17 +50,7 @@ class TestConfiguration(unittest.TestCase):
 
                         experiment_name = parameter["experiment_name"]
 
-                    elif experiment_type == 'transformer-based-hierarchy':
-                        counter = counter + 1
-                        parameter = experiments["parameter"]
-                        hash_parameter = hash(str(parameter))
-                        self.assertNotIn(hash_parameter, parameter_hashes, 'Parameter of configuration {} already known!'
-                                         .format(file_path))
-                        parameter_hashes.append(hash_parameter)
-
-                        experiment_name = parameter["experiment_name"]
-
-                    elif experiment_type == 'eval-transformer-based':
+                    elif experiment_type in eval_experiment_types:
                         counter = counter + 1
                         experiment_name = experiments["experiment_name"]
 
@@ -64,37 +58,6 @@ class TestConfiguration(unittest.TestCase):
                         counter = counter + 1
                         # Add dummy experiment name - Only one dict based config per dataset!
                         experiment_name = 'dictionary_based_models'
-
-                    elif experiment_type == 'random-forest-based':
-                        counter = counter + 1
-                        parameter = experiments["parameter"]
-                        hash_parameter = hash(str(parameter))
-                        self.assertNotIn(hash_parameter, parameter_hashes,
-                                         'Parameter of configuration {} already known!'
-                                         .format(file_path))
-                        parameter_hashes.append(hash_parameter)
-
-                        experiment_name = experiments["parameter"]["experiment_name"]
-
-                    elif experiment_type == 'eval-random-forest-based':
-                        counter = counter + 1
-                        experiment_name = experiments["experiment_name"]
-
-                    elif experiment_type == 'fasttext-based':
-                        counter = counter + 1
-                        parameter = experiments["parameter"]
-                        hash_parameter = hash(str(parameter))
-                        self.assertNotIn(hash_parameter, parameter_hashes,
-                                         'Parameter of configuration {} already known!'
-                                         .format(file_path))
-                        parameter_hashes.append(hash_parameter)
-
-                        experiment_name = experiments["parameter"]["experiment_name"]
-
-                    elif experiment_type == 'eval-fasttext-based':
-                        counter = counter + 1
-                        experiment_name = experiments["experiment_name"]
-
                     else:
                         raise ValueError('Experiment Type {} not maintained!'.format(experiment_type))
 

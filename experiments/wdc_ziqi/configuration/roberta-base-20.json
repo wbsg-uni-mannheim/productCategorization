@@ -14,5 +14,5 @@
       "weight_decay": 0.01,
       "preprocessing": "True"
     },
-  "type": "transformer-based-hierarchy"
+  "type": "transformer-based-rnn"
 }
