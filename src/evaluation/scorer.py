@@ -252,7 +252,6 @@ class HierarchicalScorer:
         labels = [label_path[-1] for label_path in labels_paths]
         preds = [pred_path[-1] for pred_path in preds_paths]
 
-
         labels_per_lvl = np.array(labels_paths).transpose().tolist()
         preds_per_lvl = np.array(preds_paths).transpose().tolist()
 

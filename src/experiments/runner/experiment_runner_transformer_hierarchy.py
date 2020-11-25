@@ -89,20 +89,39 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
 
         # Number of labels per level is determined via the tree
         num_labels_per_level = {}
+        next_labels_on_level = {}
         for i in range(longest_path):
             # Number of labels per level plus 1 for out of hierarchy nodes
-            num_labels_per_level[i+1] = len([node for node in self.get_all_nodes_per_lvl(i)]) + 1
+            node_level = [node for node in self.get_all_nodes_per_lvl(i)]
+            num_labels_per_level[i+1] = len(node_level) + 1
 
-        return normalized_encoder, normalized_decoder, num_labels_per_level
+            # Determine encoded successors
+            node_level_plus_one = [node for node in self.get_all_nodes_per_lvl(i+1)]
+            if len(node_level_plus_one) > 0:
+                encoded_successors_per_node = {}
+                for j in range(len(node_level)):
+                    node = node_level[j]
+                    successors = self.tree.successors(node)
+                    encoded_successors = []
+                    for succesor in successors:
+                        if succesor in node_level_plus_one:
+                            encoded_successor = node_level_plus_one.index(succesor) + 1 # 0 is out of hierarchy
+                            encoded_successors.append(encoded_successor)
+
+                    encoded_successors_per_node[j+1] = encoded_successors
+                next_labels_on_level[i+1] = encoded_successors_per_node
+
+        return normalized_encoder, normalized_decoder, num_labels_per_level, next_labels_on_level
 
     def run(self):
         """Run experiments"""
         result_collector = ResultCollector(self.dataset_name, self.experiment_type)
 
-        normalized_encoder, normalized_decoder, num_labels_per_level = self.encode_labels()
+        normalized_encoder, normalized_decoder, num_labels_per_level, next_labels_on_level = self.encode_labels()
 
         config = RobertaConfig.from_pretrained("roberta-base")
         config.num_labels_per_level = num_labels_per_level
+        config.next_labels_on_level = next_labels_on_level
 
         tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], config=config)
 
