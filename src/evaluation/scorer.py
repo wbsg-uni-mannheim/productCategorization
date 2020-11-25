@@ -249,7 +249,6 @@ class HierarchicalScorer:
                 if label_path[i] > 0: # Keep 0 (out of category)
                     preds_path[i] = nodes[preds_path[i] - 1]
 
-        print(labels_paths[0])
         labels = [label_path[-1] for label_path in labels_paths]
         preds = [pred_path[-1] for pred_path in preds_paths]
 

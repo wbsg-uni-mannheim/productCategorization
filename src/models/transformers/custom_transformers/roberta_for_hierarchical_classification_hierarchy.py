@@ -37,8 +37,7 @@ class RobertaLvlHead(nn.Module):
 
 
     def forward(self, input, hidden):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        combined = torch.cat((input, hidden), 1).to(device)
+        combined = torch.cat((input, hidden), 1)
         combined = self.dropout(combined)
         combined = torch.tanh(combined)
 
@@ -63,11 +62,13 @@ class RobertaForHierarchicalClassificationHierarchy(RobertaPreTrainedModel):
 
         self.classifier_dict = {}
         self.max_no_labels_per_lvl = 0
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         for level in config.num_labels_per_level:
             num_labels = config.num_labels_per_level[level]
             if num_labels > self.max_no_labels_per_lvl:
                 self.max_no_labels_per_lvl = num_labels
-            self.classifier_dict[level] = RobertaLvlHead(config, num_labels)
+            self.classifier_dict[level] = RobertaLvlHead(config, num_labels).to(device)
 
         self.init_weights()
 
