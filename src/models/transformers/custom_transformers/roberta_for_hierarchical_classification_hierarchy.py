@@ -37,7 +37,8 @@ class RobertaLvlHead(nn.Module):
 
 
     def forward(self, input, hidden):
-        combined = torch.cat((input, hidden), 1)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        combined = torch.cat((input, hidden), 1).to(device)
         combined = self.dropout(combined)
         combined = torch.tanh(combined)
 
