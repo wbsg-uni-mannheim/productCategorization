@@ -13,7 +13,7 @@
       "seed": 42,
       "weight_decay": 0.01,
       "preprocessing": "True",
-      "exploit_hierarchy": "True"
+      "hierarchy_certainty": 1
     },
   "type": "transformer-based-hierarchy"
 }

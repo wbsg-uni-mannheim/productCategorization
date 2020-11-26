@@ -1,7 +1,8 @@
+import math
 
 import torch
 from torch import nn
-from torch.nn import CrossEntropyLoss
+from torch.nn import CrossEntropyLoss, NLLLoss
 from transformers import RobertaModel
 from transformers.modeling_outputs import SequenceClassifierOutput
 from transformers.modeling_roberta import RobertaPreTrainedModel
@@ -25,6 +26,8 @@ class RobertaLvlHead(nn.Module):
         self.i2h = nn.Linear(config.hidden_size + config.hidden_size, config.hidden_size)
         self.i2o = nn.Linear(config.hidden_size + config.hidden_size, num_labels)
 
+        self.softmax = nn.LogSoftmax(dim=1)
+
 
     #def forward(self, features, hidden, **kwargs):
     #    x = features[:, 0, :]  # take <s> token (equiv. to [CLS])
@@ -44,6 +47,7 @@ class RobertaLvlHead(nn.Module):
         hidden = self.i2h(combined)
 
         output = self.i2o(combined)
+        output = self.softmax(output)
 
         return output, hidden
 
@@ -64,6 +68,8 @@ class RobertaForHierarchicalClassificationHierarchy(RobertaPreTrainedModel):
         self.max_no_labels_per_lvl = 0
 
         self.next_labels_on_level = config.next_labels_on_level
+
+        self.hierarchy_certainty = config.hierarchy_certainty
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         for level in config.num_labels_per_level:
@@ -125,32 +131,37 @@ class RobertaForHierarchicalClassificationHierarchy(RobertaPreTrainedModel):
             logits_lvl, hidden = self.classifier_dict[i+1](sequence_output, hidden)
 
             #Introduce masking here!
-            #if i > 0:
-            #    successors_per_node = self.next_labels_on_level[i]
-            #    mask = []
-            #    for previous_prediction in previous_predictions:
-            #        mask_values = [0]* self.num_labels_per_level[i+1]
-            #        mask_values[0] = 1
-            #        prediction_value = previous_prediction.item()
-            #        if prediction_value != 0:
-            #            successors = successors_per_node[prediction_value]
-            #            for successor in successors:
-            #                mask_values[successor] = 1
-            #
-            #        mask_values = torch.FloatTensor(mask_values).to(device)
-            #        mask.append(mask_values)
-            #
-            #    mask_tensor = torch.stack(mask).to(device)
-            #
-            #    logits_lvl = self.masked_vector(logits_lvl, mask_tensor)
+            if i > 0:
+                successors_per_node = self.next_labels_on_level[i]
+                mask = []
+                for prob, label in zip(previous_prediction_prob, previous_predictions_label):
+                    if prob.item() > math.log(self.hierarchy_certainty):
+                        # Do masking only if the previous prediction was sure!
+                        mask_values = [0]* self.num_labels_per_level[i+1]
+                        mask_values[0] = 1
+                        prediction_value = label.item()
+                        if prediction_value != 0:
+                            successors = successors_per_node[prediction_value]
+                            for successor in successors:
+                                mask_values[successor] = 1
+                    else:
+                        mask_values = [1] * self.num_labels_per_level[i + 1]
 
-            #previous_predictions = logits_lvl.argmax(-1)
+                    mask_values = torch.FloatTensor(mask_values).to(device)
+                    mask.append(mask_values)
+
+                mask_tensor = torch.stack(mask).to(device)
+
+                logits_lvl = self.masked_vector(logits_lvl, mask_tensor)
+
+
+            previous_prediction_prob, previous_predictions_label = torch.max(logits_lvl, 1)
 
             if loss is None:
-                loss_fct = CrossEntropyLoss()
+                loss_fct = NLLLoss()
                 loss = loss_fct(logits_lvl.view(-1, self.num_labels_per_level[i+1]), transposed_labels[i].view(-1))
             else:
-                loss_fct = CrossEntropyLoss()
+                loss_fct = NLLLoss()
                 loss += loss_fct(logits_lvl.view(-1, self.num_labels_per_level[i+1]), transposed_labels[i].view(-1))
 
             num_added_zeros = self.max_no_labels_per_lvl - self.num_labels_per_level[i + 1]
