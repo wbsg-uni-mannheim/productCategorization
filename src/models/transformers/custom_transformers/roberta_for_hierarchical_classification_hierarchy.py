@@ -115,7 +115,7 @@ class RobertaForHierarchicalClassificationHierarchy(RobertaPreTrainedModel):
         batch_size = len(labels)
         hidden = self.classifier_dict[1].initHidden(batch_size)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        previous_predictions = None
+        #previous_predictions = None
 
         #Initialize RNNHead
         for classifier in self.classifier_dict.values():
@@ -125,32 +125,32 @@ class RobertaForHierarchicalClassificationHierarchy(RobertaPreTrainedModel):
             logits_lvl, hidden = self.classifier_dict[i+1](sequence_output, hidden)
 
             #Introduce masking here!
-            if i > 0:
-                successors_per_node = self.next_labels_on_level[i]
-                mask = []
-                for previous_prediction in previous_predictions:
-                    mask_values = [0]* self.num_labels_per_level[i+1]
-                    mask_values[0] = 1
-                    prediction_value = previous_prediction.item()
-                    if prediction_value != 0:
-                        successors = successors_per_node[prediction_value]
-                        for successor in successors:
-                            mask_values[successor] = 1
+            #if i > 0:
+            #    successors_per_node = self.next_labels_on_level[i]
+            #    mask = []
+            #    for previous_prediction in previous_predictions:
+            #        mask_values = [0]* self.num_labels_per_level[i+1]
+            #        mask_values[0] = 1
+            #        prediction_value = previous_prediction.item()
+            #        if prediction_value != 0:
+            #            successors = successors_per_node[prediction_value]
+            #            for successor in successors:
+            #                mask_values[successor] = 1
+            #
+            #        mask_values = torch.FloatTensor(mask_values).to(device)
+            #        mask.append(mask_values)
+            #
+            #    mask_tensor = torch.stack(mask).to(device)
+            #
+            #    logits_lvl = self.masked_vector(logits_lvl, mask_tensor)
 
-                    mask_values = torch.FloatTensor(mask_values).to(device)
-                    mask.append(mask_values)
+            #previous_predictions = logits_lvl.argmax(-1)
 
-                mask_tensor = torch.stack(mask).to(device)
-
-                logits_lvl = self.masked_vector(logits_lvl, mask_tensor)
-
-            previous_predictions = logits_lvl.argmax(-1)
-
-            loss_fct = CrossEntropyLoss()
             if loss is None:
+                loss_fct = CrossEntropyLoss()
                 loss = loss_fct(logits_lvl.view(-1, self.num_labels_per_level[i+1]), transposed_labels[i].view(-1))
             else:
-                # Weight loss by lvl (?)
+                loss_fct = CrossEntropyLoss()
                 loss += loss_fct(logits_lvl.view(-1, self.num_labels_per_level[i+1]), transposed_labels[i].view(-1))
 
             num_added_zeros = self.max_no_labels_per_lvl - self.num_labels_per_level[i + 1]

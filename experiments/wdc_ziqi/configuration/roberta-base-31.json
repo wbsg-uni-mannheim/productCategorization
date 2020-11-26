@@ -1,0 +1,19 @@
+{
+  "dataset": "wdc_ziqi",
+  "parameter":
+    {
+      "epochs": 5,
+      "evaluate_WDC": "True",
+      "experiment_name": "roberta-base-30",
+      "gradient_accumulation_steps": 2,
+      "learning_rate": 5e-5,
+      "metric_for_best_model": "h_f1",
+      "model_name": "roberta-base-hierarchy-exploit",
+      "per_device_train_batch_size": 8,
+      "seed": 42,
+      "weight_decay": 0.01,
+      "preprocessing": "True",
+      "exploit_hierarchy": "True"
+    },
+  "type": "transformer-based-hierarchy"
+}
