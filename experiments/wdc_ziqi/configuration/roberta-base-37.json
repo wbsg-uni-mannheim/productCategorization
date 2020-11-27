@@ -4,7 +4,7 @@
     {
       "epochs": 25,
       "evaluate_WDC": "True",
-      "experiment_name": "roberta-base-35",
+      "experiment_name": "roberta-base-37",
       "gradient_accumulation_steps": 2,
       "learning_rate": 1e-4,
       "metric_for_best_model": "h_f1",
@@ -14,7 +14,7 @@
       "weight_decay": 0.01,
       "preprocessing": "True",
       "hierarchy_certainty": 1,
-      "weight_loss_per_level": "False"
+      "focal_loss": "True"
     },
   "type": "transformer-based-hierarchy"
 }

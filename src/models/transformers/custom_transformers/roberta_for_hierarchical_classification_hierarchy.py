@@ -70,6 +70,7 @@ class RobertaForHierarchicalClassificationHierarchy(RobertaPreTrainedModel):
         self.next_labels_on_level = config.next_labels_on_level
 
         self.hierarchy_certainty = config.hierarchy_certainty
+        self.focal_loss = config.focal_loss
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         for level in config.num_labels_per_level:
@@ -121,7 +122,6 @@ class RobertaForHierarchicalClassificationHierarchy(RobertaPreTrainedModel):
         batch_size = len(labels)
         hidden = self.classifier_dict[1].initHidden(batch_size)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        #previous_predictions = None
 
         #Initialize RNNHead
         for classifier in self.classifier_dict.values():
@@ -156,12 +156,14 @@ class RobertaForHierarchicalClassificationHierarchy(RobertaPreTrainedModel):
 
 
             previous_prediction_prob, previous_predictions_label = torch.max(logits_lvl, 1)
-
-            if loss is None:
-                loss_fct = NLLLoss()
-                loss = loss_fct(logits_lvl.view(-1, self.num_labels_per_level[i+1]), transposed_labels[i].view(-1))
+            if self.focal_loss:
+                loss_fct = FocalLoss()
             else:
                 loss_fct = NLLLoss()
+
+            if loss is None:
+                loss = loss_fct(logits_lvl.view(-1, self.num_labels_per_level[i+1]), transposed_labels[i].view(-1))
+            else:
                 loss += loss_fct(logits_lvl.view(-1, self.num_labels_per_level[i+1]), transposed_labels[i].view(-1))
 
             num_added_zeros = self.max_no_labels_per_lvl - self.num_labels_per_level[i + 1]
@@ -215,3 +217,19 @@ class RobertaForHierarchicalClassificationHierarchy(RobertaPreTrainedModel):
             # becomes 0 - this is just the smallest value we can actually use.
             vector = vector + (mask + 1e-45).log()
         return vector
+
+class FocalLoss(nn.Module):
+    "Focal Loss - https://arxiv.org/pdf/1708.02002.pdf"
+    def __init__(self, alpha=.25, gamma=2):
+        super(FocalLoss, self).__init__()
+
+        self.alpha = alpha
+        self.gamma = gamma
+
+    def forward(self, inputs, targets):
+        loss_fct = NLLLoss(reduction='none')
+        CE_loss = loss_fct(inputs, targets)
+
+        pt = torch.exp(-CE_loss)
+        F_loss = self.alpha * (1 - pt) ** self.gamma * CE_loss
+        return F_loss.mean()

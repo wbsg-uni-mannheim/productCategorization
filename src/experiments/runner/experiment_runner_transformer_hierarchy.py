@@ -123,6 +123,10 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
         config.num_labels_per_level = num_labels_per_level
         config.next_labels_on_level = next_labels_on_level
         config.hierarchy_certainty = self.parameter['hierarchy_certainty']
+        if self.parameter['focal_loss'] == 'True':
+            config.focal_loss = True
+        else:
+            config.focal_loss = False
 
         tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], config=config)
 
