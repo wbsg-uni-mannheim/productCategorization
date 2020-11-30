@@ -40,6 +40,8 @@ class TestConfiguration(unittest.TestCase):
                                                   'random-forest-based', 'fasttext-based']
                     eval_experiment_types = ['eval-transformer-based', 'eval-random-forest-based', 'eval-fasttext-based']
 
+                    huggingface_experiment_types = ['language-modelling']
+
                     if experiment_type in new_model_experiment_types:
                         counter = counter + 1
                         parameter = experiments["parameter"]
@@ -49,6 +51,10 @@ class TestConfiguration(unittest.TestCase):
                         parameter_hashes.append(hash_parameter)
 
                         experiment_name = parameter["experiment_name"]
+
+                    elif experiment_type in huggingface_experiment_types:
+                        counter = counter + 1
+                        experiment_name = experiments["experiment_name"]
 
                     elif experiment_type in eval_experiment_types:
                         counter = counter + 1
