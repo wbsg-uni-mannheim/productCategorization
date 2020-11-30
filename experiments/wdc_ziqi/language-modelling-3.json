@@ -1,0 +1,15 @@
+{
+  "output_dir": "/work-ceph/alebrink/productCategorization/models/wdc_ziqi/pretrained_transformers/language-modelling-3",
+  "do_train": true,
+  "do_eval": true,
+  "line_by_line": true,
+  "num_train_epochs": 20,
+  "save_total_limit": 5,
+  "model_name_or_path": "roberta-base",
+  "train_file": "/work-ceph/alebrink/productCategorization/data/processed/wdc_ziqi/language-modelling/train_language_modelling_wdc_ziqi_with_category_as_sentence.txt",
+  "validation_file": "/work-ceph/alebrink/productCategorization/data/processed/wdc_ziqi/language-modelling/validate_language_modelling_wdc_ziqi_with_category_as_sentence.txt",
+  "dataset": "wdc_ziqi",
+  "type": "language-modelling",
+  "experiment_name": "language-modelling-3",
+  "overwrite_output_dir": true
+}

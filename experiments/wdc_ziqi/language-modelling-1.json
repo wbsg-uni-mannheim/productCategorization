@@ -1,5 +1,5 @@
 {
-  "output_dir": "/work-ceph/alebrink/productCategorization/models/wdc_ziqi/pretrained_transformers/only_title",
+  "output_dir": "/work-ceph/alebrink/productCategorization/models/wdc_ziqi/pretrained_transformers/language-modelling-1",
   "do_train": true,
   "do_eval": true,
   "line_by_line": true,
