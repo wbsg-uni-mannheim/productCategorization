@@ -10,5 +10,6 @@
   "validation_file": "/work-ceph/alebrink/productCategorization/data/processed/wdc_ziqi/language-modelling/validate_language_modelling_wdc_ziqi.txt",
   "dataset": "wdc_ziqi",
   "type": "language-modelling",
-  "experiment_name": "language-modelling-1"
+  "experiment_name": "language-modelling-1",
+  "overwrite_output_dir": true
 }
