@@ -3,6 +3,7 @@ import logging
 import pickle
 from pathlib import Path
 
+import os
 import pandas as pd
 
 
@@ -14,6 +15,7 @@ class ModelRunner:
         if test:
             self.logger.warning('Run in Testmode!')
         self.path = path
+        self.data_dir = os.environ['DATA_DIR']
 
         self.experiment_type = experiment_type
         self.dataset = {}
@@ -36,19 +38,19 @@ class ModelRunner:
 
     def load_datasets(self):
         """Load dataset for the given experiments"""
-        project_dir = Path(__file__).resolve().parents[2]
         splits = ['train', 'validate', 'test']
 
         for split in splits:
             relative_path = 'data/processed/{}/split/raw/{}_data_{}.pkl'.format(self.dataset_name, split, self.dataset_name)
-            file_path = project_dir.joinpath(relative_path)
+            data_dir = Path(self.data_dir)
+            file_path = data_dir.joinpath(relative_path)
             self.dataset[split] = pd.read_pickle(file_path)
 
         self.logger.info('Loaded dataset {}!'.format(self.dataset_name))
 
     def load_tree(self):
-        project_dir = Path(__file__).resolve().parents[2]
-        path_to_tree = project_dir.joinpath('data', 'raw', self.dataset_name, 'tree', 'tree_{}.pkl'.format(self.dataset_name))
+        data_dir = Path(self.data_dir)
+        path_to_tree = data_dir.joinpath('data', 'raw', self.dataset_name, 'tree', 'tree_{}.pkl'.format(self.dataset_name))
 
         with open(path_to_tree, 'rb') as f:
             self.tree = pickle.load(f)

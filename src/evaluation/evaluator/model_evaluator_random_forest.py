@@ -15,8 +15,8 @@ class ModelEvaluatorRandomForest(ModelEvaluator):
         self.load_model()
 
     def load_model(self):
-        project_dir = Path(__file__).resolve().parents[3]
-        file_path = project_dir.joinpath(self.model_path)
+        data_dir = Path(self.data_dir)
+        file_path = data_dir.joinpath(self.model_path)
         self.model = pickle.load(open(file_path, "rb"))
 
     def evaluate(self):

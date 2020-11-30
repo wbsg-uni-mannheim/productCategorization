@@ -15,8 +15,7 @@ class TestMakeDataSet(unittest.TestCase):
     def test_load_dataset(self):
         """Test data load with existing data set --> Subset of Rakuten data set"""
         # Set up
-        project_dir = Path(__file__).resolve().parents[3]
-        path_to_pickle = project_dir.joinpath('data/processed/subset_rakuten/split/raw/train_data_subset_rakuten.pkl')
+        path_to_pickle = 'data/processed/subset_rakuten/split/raw/train_data_subset_rakuten.pkl'
 
         # Execute function
         trigger_load_dataset('subset_rakuten')
@@ -24,7 +23,7 @@ class TestMakeDataSet(unittest.TestCase):
         self.assertEqual(True, os.path.exists(path_to_pickle))
 
         df_train_rakuten = pd.read_pickle(path_to_pickle)
-        df_testing_train_rakuten = pd.read_pickle(project_dir.joinpath('data/testing/processed/subset_rakuten/split/raw/subset_rakuten_data_train.pkl'))
+        df_testing_train_rakuten = pd.read_pickle('data/testing/processed/subset_rakuten/split/raw/subset_rakuten_data_train.pkl')
 
         # Compare number of columns
         self.assertEqual(len(df_testing_train_rakuten.columns), len(df_train_rakuten.columns))

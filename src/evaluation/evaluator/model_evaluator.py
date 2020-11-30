@@ -41,10 +41,10 @@ class ModelEvaluator(ModelRunner):
 
     def initialize_encoder(self):
         """Initialize Encoder"""
-        project_dir = Path(__file__).resolve().parents[3]
+        data_dir = Path(self.data_dir)
         relative_path = 'data/processed/{}/split/raw/train_data_{}.pkl' \
             .format(self.original_dataset_name, self.original_dataset_name)
-        file_path = project_dir.joinpath(relative_path)
+        file_path = data_dir.joinpath(relative_path)
         df_orig_ds = pd.read_pickle(file_path)
         self.encoder = LabelEncoder()
         self.encoder.fit(df_orig_ds['category'].values)

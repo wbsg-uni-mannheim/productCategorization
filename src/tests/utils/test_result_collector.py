@@ -69,7 +69,7 @@ class TestResultCollector(unittest.TestCase):
         result_collector.persist_results(timestamp)
         # Tests
         project_dir = Path(__file__).resolve().parents[3]
-        path_to_results = project_dir.joinpath('experiments/{}/results/'.format(dataset_name))
+        path_to_results = project_dir.joinpath('results/{}/'.format(dataset_name))
         self.assertEqual(True, os.path.exists(path_to_results))
         path_to_results = path_to_results.joinpath('{}_{}_results_{}.csv'.format(
             dataset_name, experiment_type, datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')))

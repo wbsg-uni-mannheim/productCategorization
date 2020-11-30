@@ -41,9 +41,10 @@ def trigger_load_dataset(dataset):
 def load_and_split_dataset(dataset):
     logger = logging.getLogger(__name__)
 
-    project_dir = Path(__file__).resolve().parents[2]
+    data_dir = os.environ['DATA_DIR']
+    data_dir = Path(data_dir)
 
-    path_to_raw_data = project_dir.joinpath('data/raw', dataset)
+    path_to_raw_data = data_dir.joinpath('data/raw', dataset)
 
     dataset_collector = {}
 
@@ -140,16 +141,17 @@ def split_dataset(df_dataset):
 
 def persist_dataset(df_dataset, dataset, split_name):
     logger = logging.getLogger(__name__)
-    project_dir = Path(__file__).resolve().parents[2]
+    data_dir = os.environ['DATA_DIR']
+    data_dir = Path(data_dir)
     relative_path = 'data/processed/{}/split/raw/{}_data_{}.pkl'.format(dataset, split_name, dataset)
-    file_path = project_dir.joinpath(relative_path)
+    file_path = data_dir.joinpath(relative_path)
 
     # Create new path if it does not exist yet!
     if not os.path.exists(file_path):
         logger.info('Path {} does not exist!'.format(file_path))
         path_parts = relative_path.split('/')
         path_parts = path_parts[:-1]
-        file_path = project_dir
+        file_path = data_dir
         for part in path_parts:
             file_path = file_path.joinpath(part)
             if not os.path.exists(file_path):

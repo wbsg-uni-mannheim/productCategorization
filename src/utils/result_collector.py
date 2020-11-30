@@ -17,7 +17,7 @@ class ResultCollector():
     def persist_results(self, timestamp):
         """Persist Experiment Results"""
         project_dir = Path(__file__).resolve().parents[2]
-        relative_path = 'experiments/{}/results/'.format(self.dataset_name)
+        relative_path = 'results/{}/'.format(self.dataset_name)
         absolute_path = project_dir.joinpath(relative_path)
 
         if not os.path.exists(absolute_path):

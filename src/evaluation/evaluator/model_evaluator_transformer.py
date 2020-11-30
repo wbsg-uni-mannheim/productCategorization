@@ -5,7 +5,7 @@ from transformers import RobertaForSequenceClassification, Trainer
 from src.evaluation import scorer
 from src.evaluation.evaluator.model_evaluator import ModelEvaluator
 from src.models.transformers import utils
-from src.models.transformers.dataset.category_dataset_flat import CategoryDataset
+from src.models.transformers.dataset.category_dataset_flat import CategoryDatasetFlat
 from src.utils.result_collector import ResultCollector
 
 
@@ -17,8 +17,8 @@ class ModelEvaluatorTransformer(ModelEvaluator):
         self.load_model()
 
     def load_model(self):
-        project_dir = Path(__file__).resolve().parents[3]
-        file_path = project_dir.joinpath(self.model_path)
+        data_dir = Path(self.data_dir)
+        file_path = data_dir.joinpath(self.model_path)
         self.model = RobertaForSequenceClassification.from_pretrained(file_path)
 
     def evaluate(self):
@@ -36,7 +36,7 @@ class ModelEvaluatorTransformer(ModelEvaluator):
 
         tokenizer = utils.provide_tokenizer(self.model_name)
 
-        ds_wdc = CategoryDataset(texts, labels, tokenizer, le_dict)
+        ds_wdc = CategoryDatasetFlat(texts, labels, tokenizer, le_dict)
 
         result_collector = ResultCollector(self.dataset_name, self.experiment_type)
         result_collector.results[self.experiment_name] = trainer.evaluate(ds_wdc)

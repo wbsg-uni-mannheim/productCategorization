@@ -15,7 +15,7 @@ class TestConfiguration(unittest.TestCase):
         original_experiment_dataset_names = []
 
         for dataset_name in datasets:
-            relative_path = 'experiments/{}/configuration/'.format(dataset_name)
+            relative_path = 'experiments/{}/'.format(dataset_name)
             absolute_path = project_dir.joinpath(relative_path)
 
             # Load all configurations

@@ -8,8 +8,7 @@ class TestExperimentRunner(unittest.TestCase):
 
     def setUp(self):
         # Set up - Retrieve all information from configuration file!
-        project_dir = Path(__file__).resolve().parents[3]
-        path_to_experiments = project_dir.joinpath('experiments/testing/icecat/configuration/dictionary_based_models.json')
+        path_to_experiments = 'experiments/testing/icecat/dictionary_based_models.json'
 
         self.runner = ExperimentRunnerDict(path_to_experiments, True, 'dict-based')
         self.path_to_results = None

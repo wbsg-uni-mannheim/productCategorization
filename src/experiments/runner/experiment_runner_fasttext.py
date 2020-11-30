@@ -3,6 +3,7 @@ import time
 
 import fasttext
 import csv
+import os
 
 from src.data.preprocessing import preprocess
 from src.evaluation import scorer
@@ -44,7 +45,7 @@ class ExperimentRunnerFastText(ExperimentRunner):
         ds = ds[['title', 'category_prepared']]
 
         #Save prepared ds to disk
-        path = './data/processed/{}/fasttext/{}-{}.csv'.format(self.dataset_name, self.parameter['experiment_name'], split)
+        path = '{}/data/processed/{}/fasttext/{}-{}.csv'.format(self.data_dir, self.dataset_name, self.parameter['experiment_name'], split)
         ds.to_csv(path, index=False, sep=' ', header=False, quoting=csv.QUOTE_NONE, escapechar=" ")
 
         return path, ds, orig_categories
@@ -92,14 +93,14 @@ class ExperimentRunnerFastText(ExperimentRunner):
 
 
         # Save classifier
-        output_file = './experiments/{}/fasttext/model/{}.bin'\
-            .format(self.dataset_name, self.parameter['experiment_name'])
+        output_file = '{}/models/{}/fasttext/model/{}.bin'\
+            .format(self.data_dir, self.dataset_name, self.parameter['experiment_name'])
         classifier.save_model(output_file)
         self.logger.info('Classifier serialized to file {}'.format(output_file))
 
         # Save classifier
-        output_file = './experiments/{}/fasttext/model/encoder-{}.pkl' \
-            .format(self.dataset_name, self.parameter['experiment_name'])
+        output_file = '{}/models/{}/fasttext/model/encoder-{}.pkl' \
+            .format(self.data_dir, self.dataset_name, self.parameter['experiment_name'])
         with open(output_file, "wb") as file:
             pickle.dump(self.fasttextencoder, file=file)
         self.logger.info('Encoder serialized to file {}'.format(output_file))

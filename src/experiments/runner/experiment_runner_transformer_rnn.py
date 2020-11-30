@@ -109,8 +109,8 @@ class ExperimentRunnerTransformerRNN(ExperimentRunner):
         timestamp = time.time()
         string_timestamp = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')
         training_args = TrainingArguments(
-            output_dir='./experiments/{}/transformers/model/{}'
-                .format(self.dataset_name, self.parameter['experiment_name']),
+            output_dir='{}/models/{}/transformers/model/{}'
+                .format(self.data_dir, self.dataset_name, self.parameter['experiment_name']),
             # output directory
             num_train_epochs=self.parameter['epochs'],  # total # of training epochs
             learning_rate=self.parameter['learning_rate'],
@@ -119,7 +119,7 @@ class ExperimentRunnerTransformerRNN(ExperimentRunner):
             per_device_eval_batch_size=64,  # batch size for evaluation
             warmup_steps=500,  # number of warmup steps for learning rate scheduler
             weight_decay=self.parameter['weight_decay'],  # strength of weight decay
-            logging_dir='./experiments/{}/transformers/logs-{}'.format(self.dataset_name, string_timestamp),
+            logging_dir='{}/models/{}/transformers/logs-{}'.format(self.data_dir, self.dataset_name, string_timestamp),
             # directory for storing logs
             save_total_limit=5,  # Save only the last 5 Checkpoints
             metric_for_best_model=self.parameter['metric_for_best_model'],

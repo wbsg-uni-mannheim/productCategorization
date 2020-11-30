@@ -58,8 +58,8 @@ class ExperimentRunnerRandomForest(ExperimentRunner):
 
 
         # Save classifier
-        output_file = './experiments/{}/random_forest/model/{}.pkl'\
-            .format(self.dataset_name, self.parameter['experiment_name'])
+        output_file = '{}/models/{}/random_forest/{}.pkl'\
+            .format(self.data_dir, self.dataset_name, self.parameter['experiment_name'])
         with open(output_file, "wb") as file:
             pickle.dump(classifier, file=file)
 

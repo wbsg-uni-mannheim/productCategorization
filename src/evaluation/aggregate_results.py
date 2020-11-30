@@ -20,7 +20,7 @@ def load_results(datasets):
 
     aggregated_results = pd.DataFrame()
     for dataset_name in datasets:
-        relative_path = 'experiments/{}/results/'\
+        relative_path = 'results/{}/'\
             .format(dataset_name)
         file_path = project_dir.joinpath(relative_path)
 
@@ -61,7 +61,7 @@ def load_configuration(dataset, experiment_name):
     logger = logging.getLogger(__name__)
     project_dir = Path(__file__).resolve().parents[2]
 
-    relative_path = 'experiments/{}/configuration/{}.json'.format(dataset, experiment_name)
+    relative_path = 'experiments/{}/{}.json'.format(dataset, experiment_name)
     absolute_path = project_dir.joinpath(relative_path)
     with open(absolute_path) as json_file:
         try:
@@ -79,7 +79,7 @@ def persist_aggregated_results(df_results, datasets):
     timestamp = time.time()
     string_timestap = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')
     datasets_string = '-'.join(datasets)
-    relative_path = 'experiments/results/aggregated_results-{}-{}.csv' \
+    relative_path = 'results/general/aggregated_results-{}-{}.csv' \
         .format(datasets_string, string_timestap)
     file_path = project_dir.joinpath(relative_path)
 
