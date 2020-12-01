@@ -12,5 +12,5 @@
   "type": "language-modelling",
   "experiment_name": "language-modelling-2",
   "overwrite_output_dir": true,
-  "gradient_accumulation_steps": 2
+  "gradient_accumulation_steps": 4
 }
