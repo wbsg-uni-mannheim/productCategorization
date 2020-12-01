@@ -29,7 +29,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import Optional
 
-from nlp import load_dataset
+from datasets import load_dataset
 
 import transformers
 from transformers import (

@@ -1,0 +1,16 @@
+{
+  "output_dir": "C:/Users/alebrink/Documents/02_Research/development/productCategorization/models/wdc_ziqi/pretrained_transformers/language-modelling-0",
+  "do_train": true,
+  "do_eval": true,
+  "line_by_line": true,
+  "num_train_epochs": 20,
+  "save_total_limit": 5,
+  "model_name_or_path": "roberta-base",
+  "train_file": "C:/Users/alebrink/Documents/02_Research/development/productCategorization/data/processed/wdc_ziqi/language-modelling/train_language_modelling_wdc_ziqi_subset.txt",
+  "validation_file": "C:/Users/alebrink/Documents/02_Research/development/productCategorization/data/processed/wdc_ziqi/language-modelling/validate_language_modelling_wdc_ziqi_subset.txt",
+  "dataset": "wdc_ziqi",
+  "type": "language-modelling",
+  "experiment_name": "language-modelling-0",
+  "overwrite_output_dir": true,
+  "gradient_accumulation_steps": 4
+}
