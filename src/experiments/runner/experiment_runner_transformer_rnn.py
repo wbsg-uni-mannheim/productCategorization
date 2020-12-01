@@ -86,7 +86,7 @@ class ExperimentRunnerTransformerRNN(ExperimentRunner):
 
         normalized_encoder, normalized_decoder, number_leaf_nodes = self.encode_labels()
 
-        tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], number_leaf_nodes)
+        tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], self.parameter['pretrained_model_or_path'], number_leaf_nodes)
 
         tf_ds = {}
         for key in self.dataset:
@@ -96,7 +96,7 @@ class ExperimentRunnerTransformerRNN(ExperimentRunner):
                 df_ds = df_ds[:20]
                 self.logger.warning('Run in test mode - dataset reduced to 20 records!')
 
-            if self.parameter['preprocessing'] == "True":
+            if self.parameter['preprocessing']:
                 texts = [preprocess(value) for value in df_ds['title'].values]
             else:
                 texts = list(df_ds['title'].values)
