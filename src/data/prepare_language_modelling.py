@@ -78,6 +78,20 @@ def store_dataset_for_language_modelling(dataset, dataset_name):
                 line = '{} belongs to {}.\n'.format(prep_title, prep_catgories)
                 file.write(line)
 
+        relative_path = 'data/processed/{}/language-modelling/{}_language_modelling_{}_with_category_as_sentence_explicit.txt'.format(dataset_name, split, dataset_name)
+        file_path = data_dir.joinpath(relative_path)
+        with open(file_path, 'w') as file:
+
+            for index, row in dataset[split].iterrows():
+                #preprocess value
+                prep_title = preprocess(row['title'])
+                categories = row['path_list'].split('>')
+                categories = [value.split('_')[1] for value in categories]
+                categories = [preprocess(value) for value in categories]
+                prep_catgories = ', '.join(categories)
+                line = 'The product {} belongs to the categories {}.\n'.format(prep_title, prep_catgories)
+                file.write(line)
+
     logger.info('Dataset prepared for language modelling {}!'.format(dataset_name))
 
 
