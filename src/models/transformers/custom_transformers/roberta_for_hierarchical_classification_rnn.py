@@ -27,6 +27,8 @@ class RobertaRNNHead(nn.Module):
 
         self.i2h = nn.Linear(config.hidden_size + config.hidden_size, config.hidden_size)
         self.i2o = nn.Linear(config.hidden_size + config.hidden_size, config.num_labels)
+
+        self.o2o = nn.Linear(config.hidden_size + config.hidden_size, config.num_labels)
         self.softmax = nn.LogSoftmax(dim=1)
 
     #def forward(self, features, hidden, **kwargs):
@@ -42,11 +44,16 @@ class RobertaRNNHead(nn.Module):
     def forward(self, input, hidden):
         combined = torch.cat((input, hidden), 1)
         combined = self.dropout(combined)
-        combined = torch.tanh(combined)
 
         hidden = self.i2h(combined)
+        hidden = torch.tanh(hidden)
 
         output = self.i2o(combined)
+        output = torch.tanh(output)
+
+        output_combined = torch.cat((hidden, output), 1)
+        output = self.dropout(output_combined)
+        output = self.o2o(output)
 
         return output, hidden
 
