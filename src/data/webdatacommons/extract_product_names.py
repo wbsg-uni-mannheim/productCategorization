@@ -12,7 +12,7 @@ from src.data.preprocessing import preprocess
 @click.option('--output_path', help='Path to file containing products')
 def main(file_path, output_path):
     logger = logging.getLogger(__name__)
-    with open(file_path, 'rt', encoding='utf-8') as f:
+    with gzip.open(file_path, 'rt', encoding='utf-8') as f:
         with open(output_path, 'w', encoding='utf-8') as out_f:
             counter = 0
             for i, line in enumerate(f):
