@@ -28,7 +28,7 @@ class RobertaRNNHead(nn.Module):
         self.i2h = nn.Linear(config.hidden_size + config.hidden_size, config.hidden_size)
         self.i2o = nn.Linear(config.hidden_size + config.hidden_size, config.num_labels)
 
-        self.o2o = nn.Linear(config.hidden_size + config.hidden_size, config.num_labels)
+        self.o2o = nn.Linear(config.hidden_size + config.num_labels, config.num_labels)
         self.softmax = nn.LogSoftmax(dim=1)
 
     #def forward(self, features, hidden, **kwargs):
