@@ -12,7 +12,7 @@ from src.data.preprocessing import preprocess
 @click.option('--output_path', help='Path to file containing products')
 def main(file_path, output_path):
     logger = logging.getLogger(__name__)
-    with gzip.open(file_path, 'rt', encoding='utf-8') as f:
+    with open(file_path, 'rt', encoding='utf-8') as f:
         with open(output_path, 'w', encoding='utf-8') as out_f:
             counter = 0
             for i, line in enumerate(f):
@@ -27,7 +27,8 @@ def main(file_path, output_path):
                             out_f.write(line)
                             counter += 1
 
-                            print(r[2].split('@')[0])
+                            if counter % 100 == 0:
+                                logger.info('Written {} product names to disc.'.format(counter))
                 except csv.Error as e:
                     print(e)
 
