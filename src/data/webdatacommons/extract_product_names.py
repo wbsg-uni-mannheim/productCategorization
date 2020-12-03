@@ -29,6 +29,10 @@ def main(file_path, output_path):
 
                             if counter % 100 == 0:
                                 logger.info('Written {} product names to disc.'.format(counter))
+
+                            if counter == 100000:
+                                break
+                                
                 except csv.Error as e:
                     print(e)
 
