@@ -1,5 +1,5 @@
 {
-  "output_dir": "/work-ceph/alebrink/productCategorization/models/wdc_ziqi/pretrained_transformers/language-modelling-3",
+  "output_dir": "/work-ceph/alebrink/productCategorization/models/wdc_ziqi/pretrained_transformers/language-modelling-6",
   "do_train": true,
   "do_eval": true,
   "line_by_line": true,
@@ -10,7 +10,7 @@
   "validation_file": "/work-ceph/alebrink/productCategorization/data/processed/wdc_ziqi/language-modelling/validate_language_modelling_wdc_ziqi_with_category_as_sentence_reverse_oder.txt",
   "dataset": "wdc_ziqi",
   "type": "language-modelling",
-  "experiment_name": "language-modelling-3",
+  "experiment_name": "language-modelling-6",
   "per_device_train_batch_size": 4,
   "overwrite_output_dir": true,
   "gradient_accumulation_steps": 4
