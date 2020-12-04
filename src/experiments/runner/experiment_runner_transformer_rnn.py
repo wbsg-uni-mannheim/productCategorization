@@ -69,7 +69,7 @@ class ExperimentRunnerTransformerRNN(ExperimentRunner):
                 path = self.determine_path_to_root([encoder[key]])
                 if 'exploit_hierarchy' in self.parameter and self.parameter['exploit_hierarchy'] == "True":
                     path = self.normalize_path_from_root_per_parent(path)
-
+                
                 normalized_encoder[key] = {'original_key': encoder[key], 'derived_key': counter,
                                            'derived_path': path}
                 normalized_decoder[counter] = {'original_key': encoder[key], 'value': key}

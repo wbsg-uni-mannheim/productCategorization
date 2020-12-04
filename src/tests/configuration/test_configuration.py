@@ -37,7 +37,7 @@ class TestConfiguration(unittest.TestCase):
 
                     experiment_type = experiments["type"]
                     new_model_experiment_types = ['transformer-based', 'transformer-based-hierarchy', 'transformer-based-rnn',
-                                                  'random-forest-based', 'fasttext-based']
+                                                  'random-forest-based', 'fasttext-based', 'transformer-based-att-rnn']
                     eval_experiment_types = ['eval-transformer-based', 'eval-random-forest-based', 'eval-fasttext-based']
 
                     huggingface_experiment_types = ['language-modelling']

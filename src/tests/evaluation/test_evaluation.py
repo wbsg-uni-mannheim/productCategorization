@@ -24,16 +24,16 @@ class TestMakeDataSet(unittest.TestCase):
         f1 = 0.43
         h_f1 = 0.45
 
-        labels = ['Notebooks', 'Ink Cartridges', 'Toner Cartridges', 'Notebooks', 'Notebooks', 'Servers',
-                  'Motherboards', 'Notebook Spare Parts', 'Warranty & Support Extensions', 'Fibre Optic Cables',
-                  'Notebook Spare Parts', 'Toner Cartridges', 'Digital Photo Frames', 'Notebooks',
-                  'Notebook Spare Parts', 'Notebooks', 'Notebooks', 'PCs/Workstations', 'PCs/Workstations',
-                  'Notebook Cases']
-        preds = ['IT Courses', 'Notebooks', 'Toner Cartridges', 'AV Extenders', 'Notebooks', 'Servers',
-                 'Other Input Devices', 'Notebooks', 'Warranty & Support Extensions', 'Fibre Optic Cables',
-                 'Cable Splitters or Combiners', 'Stick PCs', 'Digital Photo Frames', 'Notebooks', 'Notebooks',
-                 'Projection Screens', 'Cable Splitters or Combiners', 'Cable Splitters or Combiners',
-                 'Cable Splitters or Combiners', 'Notebook Cases']
+        labels = ['Notebooks', 'Ink_Cartridges', 'Toner_Cartridges', 'Notebooks', 'Notebooks', 'Servers',
+                  'Motherboards', 'Notebook_Spare_Parts', 'Warranty_&_Support_Extensions', 'Fibre_Optic_Cables',
+                  'Notebook_Spare_Parts', 'Toner_Cartridges', 'Digital_Photo_Frames', 'Notebooks',
+                  'Notebook_Spare_Parts', 'Notebooks', 'Notebooks', 'PCs/Workstations', 'PCs/Workstations',
+                  'Notebook_Cases']
+        preds = ['IT_Courses', 'Notebooks', 'Toner_Cartridges', 'AV_Extenders', 'Notebooks', 'Servers',
+                 'Other_Input_Devices', 'Notebooks', 'Warranty_&_Support_Extensions', 'Fibre_Optic_Cables',
+                 'Cable_Splitters_or_Combiners', 'Stick_PCs', 'Digital_Photo_Frames', 'Notebooks', 'Notebooks',
+                 'Projection_Screens', 'Cable_Splitters_or_Combiners', 'Cable_Splitters_or_Combiners',
+                 'Cable_Splitters_or_Combiners', 'Notebook_Cases']
 
         #Run Function
         evaluator = scorer.HierarchicalScorer(experiment_name, tree)

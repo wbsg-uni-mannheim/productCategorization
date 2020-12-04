@@ -32,7 +32,7 @@ def main(file_path, output_path):
 
                             if counter == 100000:
                                 break
-                                
+
                 except csv.Error as e:
                     print(e)
 

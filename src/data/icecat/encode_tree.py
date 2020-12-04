@@ -20,12 +20,13 @@ def main():
         logger.info('Loaded tree for dataset {}!'.format(dataset))
 
     root = [node[0] for node in tree.in_degree if node[1] == 0][0]
+    normalized_root = root.replace(' ', '_')
     #Node Dict
     inserted_nodes = 0
 
     # Add root node
     dict_nodes = {root: inserted_nodes}
-    G.add_node(dict_nodes[root], name=root)
+    G.add_node(dict_nodes[root], name=normalized_root)
     inserted_nodes += 1
 
     nodes_no_successors = [root]
@@ -37,7 +38,8 @@ def main():
         for successor in successors:
             if successor not in dict_nodes:
                 dict_nodes[successor] = inserted_nodes
-                G.add_node(dict_nodes[successor], name=successor)
+                normalized_successor = successor.replace(' ', '_')
+                G.add_node(dict_nodes[successor], name=normalized_successor)
                 G.add_edge(dict_nodes[node], dict_nodes[successor])
                 nodes_no_successors.append(successor)
                 inserted_nodes += 1
