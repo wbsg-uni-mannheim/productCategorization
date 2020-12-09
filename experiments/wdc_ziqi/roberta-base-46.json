@@ -2,7 +2,7 @@
   "dataset": "wdc_ziqi",
   "parameter":
     {
-      "epochs": 5,
+      "epochs": 25,
       "evaluate_WDC": "True",
       "experiment_name": "roberta-base-46",
       "gradient_accumulation_steps": 2,
