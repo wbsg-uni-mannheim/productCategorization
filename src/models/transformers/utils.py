@@ -1,8 +1,8 @@
 from transformers import BertTokenizerFast, BertForSequenceClassification, RobertaTokenizerFast, \
     RobertaForSequenceClassification
 
-#from src.models.transformers.custom_transformers.roberta_for_hierarchical_classification_attention import \
-#    RobertaForHierarchicalClassificationAttRNN
+from src.models.transformers.custom_transformers.roberta_for_hierarchical_classification_attention import \
+    RobertaForHierarchicalClassificationAttRNN
 from src.models.transformers.custom_transformers.roberta_for_hierarchical_classification_rnn import \
     RobertaForHierarchicalClassificationRNN
 from src.models.transformers.custom_transformers.roberta_for_hierarchical_classification_hierarchy import \
@@ -20,8 +20,8 @@ def provide_model_and_tokenizer(name, pretrained_model_or_path, num_labels=2, co
         return roberta_base(num_labels)
     elif name == 'roberta-base-hierarchy-rnn':
         return roberta_base_hierarchy_rnn(num_labels, pretrained_model_or_path)
-   # elif name == 'roberta-base-hierarchy-att-rnn':
-   #     return roberta_base_hierarchy_att_rnn(num_labels, pretrained_model_or_path)
+    elif name == 'roberta-base-hierarchy-att-rnn':
+        return roberta_base_hierarchy_att_rnn(num_labels, pretrained_model_or_path)
     elif name == 'roberta-base-hierarchy-exploit':
         return roberta_base_hierarchy_exploit(config)
 
@@ -57,11 +57,11 @@ def roberta_base_hierarchy_rnn(num_labels, pretrained_model_or_path):
 
     return tokenizer, model
 
-#def roberta_base_hierarchy_att_rnn(num_labels, pretrained_model_or_path):
-#    tokenizer = RobertaTokenizerFast.from_pretrained('roberta-base')
-#    model = RobertaForHierarchicalClassificationAttRNN.from_pretrained(pretrained_model_or_path, num_labels=num_labels)
+def roberta_base_hierarchy_att_rnn(num_labels, pretrained_model_or_path):
+    tokenizer = RobertaTokenizerFast.from_pretrained('roberta-base')
+    model = RobertaForHierarchicalClassificationAttRNN.from_pretrained(pretrained_model_or_path, num_labels=num_labels)
 
-#    return tokenizer, model
+    return tokenizer, model
 
 def roberta_base_tokenizer():
     tokenizer = RobertaTokenizerFast.from_pretrained('roberta-base')

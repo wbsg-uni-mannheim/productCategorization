@@ -3,6 +3,7 @@ from pathlib import Path
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from src.models.model_runner import ModelRunner
+from src.data.preprocessing import preprocess
 
 
 class ModelEvaluator(ModelRunner):
@@ -61,10 +62,8 @@ class ModelEvaluator(ModelRunner):
         self.model_name = experiments['model_name']
         self.prediction_output = experiments['prediction_output']
 
-        if experiments['evaluate_on_full_dataset'] == 'True':
-            self.evaluate_on_full_dataset = True
-        else:
-            self.evaluate_on_full_dataset = False
+        self.evaluate_on_full_dataset = experiments['evaluate_on_full_dataset']
+        self.preprocessing = experiments['preprocessing']
 
         self.parameter = experiments
 
@@ -83,5 +82,9 @@ class ModelEvaluator(ModelRunner):
             # Load only a subset of the data
             ds_eval = ds_eval[:50]
             self.logger.warning('Run in test mode - dataset reduced to 50 records!')
+
+        # Preprocess values if necessary
+        if self.preprocessing:
+            ds_eval['title'] = ds_eval['title'].apply(preprocess)
 
         return ds_eval

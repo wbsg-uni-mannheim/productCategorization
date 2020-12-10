@@ -6,7 +6,7 @@ import click
 
 from src.evaluation.evaluator.model_evaluator_fasttext import ModelEvaluatorFastText
 from src.evaluation.evaluator.model_evaluator_random_forest import ModelEvaluatorRandomForest
-from src.evaluation.evaluator.model_evaluator_transformer import ModelEvaluatorTransformer
+from src.evaluation.evaluator.model_evaluator_transformer_flat import ModelEvaluatorTransformer
 
 
 @click.command()

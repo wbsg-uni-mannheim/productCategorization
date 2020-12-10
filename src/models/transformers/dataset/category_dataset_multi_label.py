@@ -7,10 +7,6 @@ class CategoryDatasetMultiLabel(torch.utils.data.Dataset):
         self.encodings = tokenizer(texts, padding=True, truncation=True)
 
         # Preprocess labels
-        for x in labels:
-            print(x)
-            print(encoder.get(x))
-
         self.labels = [encoder.get(x)['derived_path'] for x in labels]
 
     def __getitem__(self, idx):
