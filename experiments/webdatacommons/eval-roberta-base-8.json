@@ -3,7 +3,7 @@
   "dataset" : "webdatacommons",
   "original_dataset" : "icecat",
   "original_experiment_name" : "roberta-base-8",
-  "model_path": "C:/Users/alebrink/Documents/02_Research/development/productCategorization/models/icecat/transformers/model/roberta-base-8",
+  "model_path": "/work-ceph/alebrink/productCategorization/models/icecat/transformers/models/icecat/transformers/model/roberta-base-8",
   "prediction_output": "/work-ceph/alebrink/productCategorization/models/icecat/transformers/results/webdatacommons-roberta-base-8-prediction.pkl",
   "model_name": "roberta-base",
   "evaluate_on_full_dataset": true,
