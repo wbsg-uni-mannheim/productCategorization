@@ -1,4 +1,5 @@
 import time
+import csv
 from pathlib import Path
 from transformers import RobertaForSequenceClassification, Trainer
 
@@ -58,7 +59,7 @@ class ModelEvaluatorTransformer(ModelEvaluator):
             texts = list(ds_eval['preprocessed_title'].values)
         else:
             texts = list(ds_eval['title'].values)
-            
+
         labels = [value.replace(' ', '_') for value in ds_eval['category'].values]
 
         tokenizer = utils.provide_tokenizer(self.model_name)
@@ -73,7 +74,8 @@ class ModelEvaluatorTransformer(ModelEvaluator):
         preds = prediction.predictions.argmax(-1)
         ds_eval['prediction'] = [normalized_decoder[pred]['value'] for pred in preds]
 
-        ds_eval.to_pickle(self.prediction_output)
+        ds_eval.to_csv(self.prediction_output, index=False, sep=';', encoding='utf-8', quotechar='"',
+                                      quoting=csv.QUOTE_ALL)
 
         # Persist results
         timestamp = time.time()
