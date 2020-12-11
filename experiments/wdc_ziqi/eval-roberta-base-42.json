@@ -6,6 +6,6 @@
   "model_path": "/work-ceph/alebrink/productCategorization/models/wdc_ziqi/transformers/model/roberta-base-42",
   "prediction_output": "/work-ceph/alebrink/productCategorization/data/prediction/wdc_ziqi/webdatacommons-eval-roberta-base-42-prediction.csv",
   "model_name": "roberta-base",
-  "evaluate_on_full_dataset": true,
+  "evaluate_on_full_dataset": false,
   "preprocessing": true
 }

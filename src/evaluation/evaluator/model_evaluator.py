@@ -76,7 +76,7 @@ class ModelEvaluator(ModelRunner):
         if self.evaluate_on_full_dataset:
             ds_eval = self.full_dataset
         else:
-            ds_eval = self.dataset['test']
+            ds_eval = self.dataset['validate']
 
         if self.test:
             # Load only a subset of the data
