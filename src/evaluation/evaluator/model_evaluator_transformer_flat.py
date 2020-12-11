@@ -60,7 +60,8 @@ class ModelEvaluatorTransformer(ModelEvaluator):
         else:
             texts = list(ds_eval['title'].values)
 
-        labels = [value.replace(' ', '_') for value in ds_eval['category'].values]
+        ds_eval['category'] = ds_eval['category'].str.replace(' ', '_')
+        labels = list(ds_eval['category'].values)
 
         tokenizer = utils.provide_tokenizer(self.model_name)
 
