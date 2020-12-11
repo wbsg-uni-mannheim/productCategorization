@@ -54,7 +54,11 @@ class ModelEvaluatorTransformer(ModelEvaluator):
             compute_metrics=evaluator.compute_metrics_transformers_flat
         )
 
-        texts = list(ds_eval['title'].values)
+        if self.preprocessing:
+            texts = list(ds_eval['preprocessed_title'].values)
+        else:
+            texts = list(ds_eval['title'].values)
+            
         labels = [value.replace(' ', '_') for value in ds_eval['category'].values]
 
         tokenizer = utils.provide_tokenizer(self.model_name)
@@ -67,7 +71,7 @@ class ModelEvaluatorTransformer(ModelEvaluator):
         # Predict values for error analysis
         prediction = trainer.predict(ds_wdc)
         preds = prediction.predictions.argmax(-1)
-        ds_eval['prediction'] = self.encoder.inverse_transform(preds)
+        ds_eval['prediction'] = [normalized_decoder[pred]['value'] for pred in preds]
 
         ds_eval.to_pickle(self.prediction_output)
 

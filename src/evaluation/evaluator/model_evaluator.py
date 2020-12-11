@@ -85,6 +85,6 @@ class ModelEvaluator(ModelRunner):
 
         # Preprocess values if necessary
         if self.preprocessing:
-            ds_eval['title'] = ds_eval['title'].apply(preprocess)
+            ds_eval['preprocessed_title'] = ds_eval['title'].apply(preprocess)
 
         return ds_eval
