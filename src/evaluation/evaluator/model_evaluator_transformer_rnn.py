@@ -6,6 +6,8 @@ from transformers import RobertaForSequenceClassification, Trainer
 from src.evaluation import scorer
 from src.evaluation.evaluator.model_evaluator import ModelEvaluator
 from src.models.transformers import utils
+from src.models.transformers.custom_transformers.roberta_for_hierarchical_classification_rnn import \
+    RobertaForHierarchicalClassificationRNN
 from src.models.transformers.dataset.category_dataset_flat import CategoryDatasetFlat
 from src.utils.result_collector import ResultCollector
 
@@ -21,7 +23,7 @@ class ModelEvaluatorTransformerRNN(ModelEvaluator):
     def load_model(self):
         data_dir = Path(self.data_dir)
         file_path = data_dir.joinpath(self.model_path)
-        self.model = RobertaForSequenceClassification.from_pretrained(file_path)
+        self.model = RobertaForHierarchicalClassificationRNN.from_pretrained(file_path)
 
     def determine_path_to_root(self, nodes):
         predecessors = self.tree.predecessors(nodes[-1])
