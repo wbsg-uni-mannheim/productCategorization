@@ -229,13 +229,27 @@ class HierarchicalScorer:
         return self.compute_metrics_no_encoding(labels, preds)
 
     def compute_metrics_transformers_hierarchy(self, pred):
+        labels_paths, preds_paths = self.transpose_hierarchy_predictions(pred)
+
+        labels_per_lvl = np.array(labels_paths).transpose().tolist()
+        preds_per_lvl = np.array(preds_paths).transpose().tolist()
+
+        labels = [label_path[-1] for label_path in labels_paths]
+        preds = [pred_path[-1] for pred_path in preds_paths]
+
+        return self.compute_metrics(labels, preds, labels_per_lvl, preds_per_lvl)
+
+    def transpose_hierarchy_predictions(self, pred):
         labels_paths = pred.label_ids
         preds_paths = []
         for prediction in pred.predictions:
             pred_path = []
             for i in range(len(prediction)):
                 # Cut additional zeros!
-                pred = prediction[i][:self.num_labels_per_lvl[i+1]].argmax(-1)
+                if self.num_labels_per_lvl is not None:
+                    pred = prediction[i][:self.num_labels_per_lvl[i+1]].argmax(-1)
+                else:
+                    pred = prediction[i].argmax(-1)
                 pred_path.append(pred)
             preds_paths.append(pred_path)
 
@@ -244,20 +258,21 @@ class HierarchicalScorer:
             nodes = list(self.get_all_nodes_per_lvl(i))
             for label_path in labels_paths:
                 if label_path[i] > 0: # Keep 0 (out of category)
-                    label_path[i] = nodes[label_path[i] - 1]
+                    index = label_path[i] - 1
+                    label_path[i] = nodes[index]
             for preds_path in preds_paths:
                 if label_path[i] > 0: # Keep 0 (out of category)
-                    preds_path[i] = nodes[preds_path[i] - 1]
+                    index = preds_path[i] - 1
+                    preds_path[i] = nodes[index]
 
-        labels = [label_path[-1] for label_path in labels_paths]
-        preds = [pred_path[-1] for pred_path in preds_paths]
+        return preds_paths, preds_paths
 
-        labels_per_lvl = np.array(labels_paths).transpose().tolist()
-        preds_per_lvl = np.array(preds_paths).transpose().tolist()
+    def compute_metrics_transformers_rnn(self, pred):
+        labels, preds, labels_per_lvl, preds_per_lvl = self.transpose_rnn_hierarchy(pred)
 
         return self.compute_metrics(labels, preds, labels_per_lvl, preds_per_lvl)
 
-    def compute_metrics_transformers_rnn(self, pred):
+    def transpose_rnn_hierarchy(self, pred):
         labels_paths = pred.label_ids
         preds_paths = [list(prediction.argmax(-1)) for prediction in pred.predictions]
 
@@ -267,7 +282,7 @@ class HierarchicalScorer:
         labels_per_lvl = np.array(labels_paths).transpose().tolist()
         preds_per_lvl = np.array(preds_paths).transpose().tolist()
 
-        return self.compute_metrics(labels, preds, labels_per_lvl, preds_per_lvl)
+        return labels, preds, labels_per_lvl, preds_per_lvl
 
     def compute_metrics_no_encoding(self, labels, preds):
         decoder = dict(self.tree.nodes(data="name"))

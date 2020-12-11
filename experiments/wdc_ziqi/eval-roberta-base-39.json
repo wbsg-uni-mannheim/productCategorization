@@ -1,0 +1,11 @@
+{ "experiment_name": "eval-roberta-base-39",
+  "type" : "eval-transformer-based-rnn",
+  "dataset" : "wdc_ziqi",
+  "original_dataset" : "wdc_ziqi",
+  "original_experiment_name" : "roberta-base-39",
+  "model_path": "C:/Users/alebrink/Documents/02_Research/development/productCategorization/models/wdc_ziqi/transformers/model/roberta-base-39",
+  "prediction_output": "C:/Users/alebrink/Documents/02_Research/development/alebrink/productCategorization/data/prediction/wdc_ziqi/wdc_ziqi-eval-roberta-base-39-prediction.csv",
+  "model_name": "roberta-base",
+  "evaluate_on_full_dataset": false,
+  "preprocessing": true
+}
