@@ -7,6 +7,7 @@ import click
 from src.evaluation.evaluator.model_evaluator_fasttext import ModelEvaluatorFastText
 from src.evaluation.evaluator.model_evaluator_random_forest import ModelEvaluatorRandomForest
 from src.evaluation.evaluator.model_evaluator_transformer_flat import ModelEvaluatorTransformer
+from src.evaluation.evaluator.model_evaluator_transformer_rnn import ModelEvaluatorTransformerRNN
 
 
 @click.command()
@@ -19,6 +20,8 @@ def main(configuration, test, experiment_type):
 
     if experiment_type == 'eval-transformer-based':
         evaluator = ModelEvaluatorTransformer(configuration, test, experiment_type)
+    elif experiment_type == 'eval-transformer-based-rnn':
+        evaluator = ModelEvaluatorTransformerRNN(configuration, test, experiment_type)
     elif experiment_type == 'eval-random-forest-based':
         evaluator = ModelEvaluatorRandomForest(configuration, test, experiment_type)
     elif experiment_type == 'eval-fasttext-based':
