@@ -4,7 +4,7 @@
   "original_dataset" : "icecat",
   "original_experiment_name" : "roberta-base-8",
   "model_path": "/work-ceph/alebrink/productCategorization/models/icecat/transformers/model/roberta-base-8",
-  "prediction_output": "/work-ceph/alebrink/productCategorization/prediction/webdatacommons/webdatacommons-eval-roberta-base-8-prediction.csv",
+  "prediction_output": "/work-ceph/alebrink/productCategorization/data/prediction/webdatacommons/webdatacommons-eval-roberta-base-8-prediction.csv",
   "model_name": "roberta-base",
   "evaluate_on_full_dataset": true,
   "preprocessing": true
