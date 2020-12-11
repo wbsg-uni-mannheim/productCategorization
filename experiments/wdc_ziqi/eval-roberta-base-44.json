@@ -4,7 +4,7 @@
   "original_dataset" : "wdc_ziqi",
   "original_experiment_name" : "roberta-base-44",
   "model_path": "/work-ceph/alebrink/productCategorization/models/wdc_ziqi/transformers/model/roberta-base-44",
-  "prediction_output": "/work-ceph/alebrink/productCategorization/data/prediction/wdc_ziqi/webdatacommons-eval-roberta-base-44-prediction.csv",
+  "prediction_output": "/work-ceph/alebrink/productCategorization/data/prediction/wdc_ziqi/wdc_ziqi-eval-roberta-base-44-prediction.csv",
   "model_name": "roberta-base",
   "evaluate_on_full_dataset": false,
   "preprocessing": true

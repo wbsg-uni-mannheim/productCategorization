@@ -78,12 +78,12 @@ class ModelEvaluatorTransformerRNN(ModelEvaluator):
         # Total number of labels is determined by the number of labels in the tree
         number_of_labels = len(self.tree)
 
-        return normalized_encoder, normalized_decoder, number_of_labels
+        return normalized_encoder, normalized_decoder, encoder, decoder, number_of_labels
 
     def evaluate(self):
         ds_eval = self.prepare_eval_dataset()
 
-        normalized_encoder, normalized_decoder, number_leaf_nodes = self.encode_labels()
+        normalized_encoder, normalized_decoder, encoder, decoder, number_leaf_nodes = self.encode_labels()
 
         evaluator = scorer.HierarchicalScorer(self.experiment_name, self.tree, transformer_decoder=normalized_decoder)
         trainer = Trainer(
@@ -111,18 +111,20 @@ class ModelEvaluatorTransformerRNN(ModelEvaluator):
 
         labels, preds, labels_per_lvl, preds_per_lvl = evaluator.transpose_rnn_hierarchy(pred)
 
+        ds_eval['Leaf Label'] = [decoder[label] for label in labels]
+        ds_eval['Leaf Prediction'] = [decoder[pred] for pred in preds]
+
         counter = 1
-        for labels, predictions in zip(labels_per_lvl, preds_per_lvl):
+        for labs, predictions in zip(labels_per_lvl, preds_per_lvl):
             column_name_label = 'Hierarchy Level {} Label'.format(counter)
             column_name_prediction = 'Hierarchy Level {} Prediction'.format(counter)
 
-            ds_eval[column_name_label] = labels
-            ds_eval[column_name_prediction] = predictions
+            ds_eval[column_name_label] = [decoder[label] for label in labs]
+            ds_eval[column_name_prediction] = [decoder[prediction] for prediction in predictions]
 
             counter += 1
 
-        ds_eval['Leaf Label'] = labels
-        ds_eval['Leaf Prediction'] = preds
+
 
         ds_eval.to_csv(self.prediction_output, index=False, sep=';', encoding='utf-8', quotechar='"',
                                       quoting=csv.QUOTE_ALL)
