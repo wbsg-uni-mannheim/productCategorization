@@ -104,16 +104,28 @@ class ModelEvaluatorTransformerRNN(ModelEvaluator):
         result_collector.results[self.experiment_name] = trainer.evaluate(ds_wdc)
 
         # Predict values for error analysis
-        predictions = trainer.predict(ds_wdc)
+        pred = trainer.predict(ds_wdc)
+        labels_paths = pred.label_ids
         preds_paths = []
-        for prediction in predictions:
+        for prediction in pred.predictions:
             pred_path = []
             for i in range(len(prediction)):
                 # Cut additional zeros!
-                pred = prediction[i][:self.num_labels_per_lvl[i + 1]].argmax(-1)
+                pred = prediction[i][:self.num_labels_per_lvl[i+1]].argmax(-1)
                 pred_path.append(pred)
             preds_paths.append(pred_path)
 
+        # Decode hierarchy lvl labels
+        for i in range(len(labels_paths[0])):
+            nodes = list(self.get_all_nodes_per_lvl(i))
+            for label_path in labels_paths:
+                if label_path[i] > 0: # Keep 0 (out of category)
+                    label_path[i] = nodes[label_path[i] - 1]
+            for preds_path in preds_paths:
+                if label_path[i] > 0: # Keep 0 (out of category)
+                    preds_path[i] = nodes[preds_path[i] - 1]
+
+        ds_eval['labels'] = [label_path[-1] for label_path in labels_paths]
         ds_eval['preds'] = [pred_path[-1] for pred_path in preds_paths]
 
         ds_eval.to_csv(self.prediction_output, index=False, sep=';', encoding='utf-8', quotechar='"',
