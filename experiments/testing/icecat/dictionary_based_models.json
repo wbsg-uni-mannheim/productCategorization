@@ -3,11 +3,11 @@
   "most_frequent_leaf" : "Notebooks",
   "parameter" :[
   {
-    "synonyms": "False",
-    "lemmatizing": "False",
-    "fallback": "False"
+    "synonyms": false,
+    "lemmatizing": false,
+    "fallback": false
   },{
-    "synonyms": "False",
-    "lemmatizing": "False",
-    "fallback": "True"
+    "synonyms": false,
+    "lemmatizing": false,
+    "fallback": true
   }]}
