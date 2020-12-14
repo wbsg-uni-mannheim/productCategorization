@@ -3,35 +3,35 @@
   "most_frequent_leaf" : "Ink Cartridges",
   "parameter" :[
   {
-    "synonyms": "False",
-    "lemmatizing": "False",
-    "fallback": "False"
+    "synonyms": false,
+    "lemmatizing": false,
+    "fallback": false
   },{
-    "synonyms": "False",
-    "lemmatizing": "False",
-    "fallback": "True"
+    "synonyms": false,
+    "lemmatizing": false,
+    "fallback": true
   },{
-  "synonyms": "True",
-  "lemmatizing": "False",
-  "fallback": "False"
+  "synonyms": true,
+  "lemmatizing": false,
+  "fallback": false
 },{
-  "synonyms": "False",
-  "lemmatizing": "True",
-  "fallback": "False"
+  "synonyms": false,
+  "lemmatizing": true,
+  "fallback": false
 },{
-  "synonyms": "True",
-  "lemmatizing": "True",
-  "fallback": "False"
+  "synonyms": true,
+  "lemmatizing": true,
+  "fallback": false
 },{
-  "synonyms": "True",
-  "lemmatizing": "False",
-  "fallback": "True"
+  "synonyms": true,
+  "lemmatizing": false,
+  "fallback": true
 },{
-  "synonyms": "False",
-  "lemmatizing": "True",
-  "fallback": "True"
+  "synonyms": false,
+  "lemmatizing": true,
+  "fallback": true
 },{
-  "synonyms": "True",
-  "lemmatizing": "True",
-  "fallback": "True"
+  "synonyms": true,
+  "lemmatizing": true,
+  "fallback": true
 }]}

@@ -3,7 +3,6 @@
   "parameter":
     {
       "epochs": 25,
-      "evaluate_WDC": "True",
       "experiment_name": "roberta-base-39",
       "gradient_accumulation_steps": 2,
       "learning_rate": 5e-5,
@@ -13,7 +12,7 @@
       "per_device_train_batch_size": 8,
       "seed": 42,
       "weight_decay": 0.01,
-      "preprocessing": "True"
+      "preprocessing": true
     },
   "type": "transformer-based-rnn"
 }

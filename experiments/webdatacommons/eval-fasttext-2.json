@@ -7,5 +7,5 @@
   "encoder_path": "experiments/icecat/fasttext/model/encoder-fasttext-2.pkl",
   "prediction_output": "experiments/webdatacommons/fasttext/results/webdatacommons-fasttext-2-prediction.pkl",
   "model_name": "fasttext",
-  "evaluate_on_full_dataset": "True"
+  "evaluate_on_full_dataset": true
 }

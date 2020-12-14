@@ -4,7 +4,7 @@
     {
       "experiment_name": "fasttext-1",
       "model_name": "fasttext",
-      "autotune": "True",
+      "autotune": true,
       "seed": 42
     },
   "type": "fasttext-based"

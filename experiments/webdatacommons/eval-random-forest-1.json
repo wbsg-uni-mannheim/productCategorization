@@ -6,5 +6,5 @@
   "model_path": "experiments/icecat/random_forest/results/model/random-forest-1.pkl",
   "prediction_output": "experiments/webdatacommons/transformers/results/webdatacommons-random-forest-1-prediction.pkl",
   "model_name": "random-forest",
-  "evaluate_on_full_dataset": "True"
+  "evaluate_on_full_dataset": true
 }

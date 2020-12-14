@@ -3,7 +3,6 @@
   "parameter":
     {
       "epochs": 5,
-      "evaluate_WDC": "True",
       "experiment_name": "roberta-base-44",
       "gradient_accumulation_steps": 2,
       "learning_rate": 5e-5,

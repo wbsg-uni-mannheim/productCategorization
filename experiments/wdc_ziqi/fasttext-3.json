@@ -4,7 +4,7 @@
     {
       "experiment_name": "fasttext-3",
       "model_name": "fasttext",
-      "autotune": "False",
+      "autotune": false,
       "epoch": 3000,
       "lr": 0.9,
       "wordNgrams": 3,
