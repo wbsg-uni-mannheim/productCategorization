@@ -19,7 +19,7 @@ from src.experiments.runner.experiment_runner_transformer_hierarchy import Exper
 @click.option('--experiment_type', help='Experiment Type')
 def main(configuration, test, experiment_type):
     #Extract experiment name from config for logging
-    config_path = configuration.split('\\')
+    config_path = configuration.split('/')
     dataset = config_path[-2]
     experiment_name = config_path[-1].split('.')[0]
 
