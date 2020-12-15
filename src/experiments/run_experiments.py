@@ -2,7 +2,7 @@
 
 import click
 import logging
-from multiprocessing import Process
+#import torch.multiprocessing as mp
 import json
 
 from src.experiments.runner.experiment_runner_dict import ExperimentRunnerDict
@@ -33,11 +33,11 @@ def main(configuration, test, experiment_type):
     generated_experiments = augment_experiments(configuration)
 
     for config in generated_experiments:
-        args = (config, test, experiment_type,)
+        run_experiment(config, test, experiment_type)
 
-        process = Process(target=run_experiment, args=args)
-        process.start()
-        process.join()
+        #process = mp.Process(target=run_experiment, args=args)
+        #process.start()
+        #process.join()
 
 #@click.command()
 #@click.option('--configuration', help='Configuration used to run the experiments')
