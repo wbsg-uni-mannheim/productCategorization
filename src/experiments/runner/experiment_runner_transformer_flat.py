@@ -92,7 +92,8 @@ class ExperimentRunnerTransformerFlat(ExperimentRunner):
             metric_for_best_model=self.parameter['metric_for_best_model'],
             load_best_model_at_end=True,
             gradient_accumulation_steps=self.parameter['gradient_accumulation_steps'],
-            seed=self.parameter['seed']
+            seed=self.parameter['seed'],
+            disable_tqdm=True
         )
 
         evaluator = scorer.HierarchicalScorer(self.parameter['experiment_name'], self.tree,

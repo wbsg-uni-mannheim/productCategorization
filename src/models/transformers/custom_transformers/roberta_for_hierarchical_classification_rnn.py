@@ -1,65 +1,12 @@
-from typing import Optional, Tuple
-
 import torch
-from dataclasses import dataclass
-from torch import nn
-from torch.nn import CrossEntropyLoss
+from torch.nn import NLLLoss
 from transformers import RobertaModel
-from transformers.file_utils import ModelOutput
 from transformers.modeling_outputs import SequenceClassifierOutput
 from transformers.modeling_roberta import RobertaPreTrainedModel
 
-class RobertaRNNHead(nn.Module):
-    """Head for sentence-level classification tasks."""
+from src.models.transformers.custom_transformers.modules.focal_loss import FocalLoss
+from src.models.transformers.custom_transformers.modules.roberta_rnn_head import RobertaRNNHead
 
-    #def __init__(self, config):
-    #    super().__init__()
-    #    self.dense = nn.Linear(config.hidden_size, config.hidden_size)
-    #    self.dropout = nn.Dropout(config.hidden_dropout_prob)
-    #    self.out_proj = nn.Linear(config.hidden_size, config.num_labels)
-
-    def __init__(self, config):
-        super(RobertaRNNHead, self).__init__()
-
-        self.hidden_size = config.hidden_size
-
-        self.dropout = nn.Dropout(config.hidden_dropout_prob)
-
-        self.i2h = nn.Linear(config.hidden_size + config.hidden_size, config.hidden_size)
-        self.i2o = nn.Linear(config.hidden_size + config.hidden_size, config.num_labels)
-
-        self.o2o = nn.Linear(config.hidden_size + config.num_labels, config.num_labels)
-        self.softmax = nn.LogSoftmax(dim=1)
-
-    #def forward(self, features, hidden, **kwargs):
-    #    x = features[:, 0, :]  # take <s> token (equiv. to [CLS])
-    #    x = self.dropout(x)
-    #    x = self.dense(x)
-    #    x = torch.tanh(x)
-    #    x = self.dropout(x)
-    #    x = self.out_proj(x)
-    #    return x
-
-
-    def forward(self, input, hidden):
-        combined = torch.cat((input, hidden), 1)
-        combined = self.dropout(combined)
-
-        hidden = self.i2h(combined)
-        hidden = torch.tanh(hidden)
-
-        output = self.i2o(combined)
-        output = torch.tanh(output)
-
-        output_combined = torch.cat((hidden, output), 1)
-        output = self.dropout(output_combined)
-        output = self.o2o(output)
-
-        return output, hidden
-
-    def initHidden(self, size):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        return torch.zeros(size, self.hidden_size).to(device)
 
 class RobertaForHierarchicalClassificationRNN(RobertaPreTrainedModel):
     authorized_missing_keys = [r"position_ids"]
@@ -67,26 +14,26 @@ class RobertaForHierarchicalClassificationRNN(RobertaPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
+        self.focal_loss = config.focal_loss
 
         self.roberta = RobertaModel(config, add_pooling_layer=False)
 
-
-        self.classifier = RobertaRNNHead(config)
+        self.classifier = RobertaRNNHead(config, self.num_labels)
 
         self.init_weights()
 
     def forward(
-        self,
-        input_ids=None,
-        attention_mask=None,
-        token_type_ids=None,
-        position_ids=None,
-        head_mask=None,
-        inputs_embeds=None,
-        labels=None,
-        output_attentions=None,
-        output_hidden_states=None,
-        return_dict=None,
+            self,
+            input_ids=None,
+            attention_mask=None,
+            token_type_ids=None,
+            position_ids=None,
+            head_mask=None,
+            inputs_embeds=None,
+            labels=None,
+            output_attentions=None,
+            output_hidden_states=None,
+            return_dict=None,
     ):
         r"""
         labels (:obj:`torch.LongTensor` of shape :obj:`(batch_size,)`, `optional`):
@@ -108,13 +55,13 @@ class RobertaForHierarchicalClassificationRNN(RobertaPreTrainedModel):
             return_dict=return_dict,
         )
 
-        sequence_output = outputs[0][:, 0, :].view(-1,768)  # take <s> token (equiv. to [CLS])
+        sequence_output = outputs[0][:, 0, :].view(-1, 768)  # take <s> token (equiv. to [CLS])
 
         loss = None
         logits_list = []
-        transposed_labels = torch.transpose(labels,0, 1)
+        transposed_labels = torch.transpose(labels, 0, 1)
         hidden = self.classifier.initHidden(len(labels))
-        #Initialize RNNHead
+        # Initialize RNNHead
         self.classifier.zero_grad()
 
         for i in range(len(transposed_labels)):
@@ -122,7 +69,11 @@ class RobertaForHierarchicalClassificationRNN(RobertaPreTrainedModel):
 
             logits_list.append(logits_lvl)
 
-            loss_fct = CrossEntropyLoss()
+            if self.focal_loss:
+                loss_fct = FocalLoss()
+            else:
+                loss_fct = NLLLoss()
+
             if loss is None:
                 loss = loss_fct(logits_list[i].view(-1, self.num_labels), transposed_labels[i].view(-1))
             else:
@@ -141,4 +92,3 @@ class RobertaForHierarchicalClassificationRNN(RobertaPreTrainedModel):
             hidden_states=outputs.hidden_states,
             attentions=outputs.attentions,
         )
-

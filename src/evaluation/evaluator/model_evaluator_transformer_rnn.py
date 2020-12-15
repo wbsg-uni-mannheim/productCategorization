@@ -9,7 +9,7 @@ from src.models.transformers import utils
 from src.models.transformers.custom_transformers.roberta_for_hierarchical_classification_rnn import \
     RobertaForHierarchicalClassificationRNN
 from src.models.transformers.dataset.category_dataset_flat import CategoryDatasetFlat
-from src.models.transformers.dataset.category_dataset_multi_label import CategoryDatasetMultiLabel
+from src.models.transformers.dataset.category_dataset_rnn import CategoryDatasetMultiLabel
 from src.utils.result_collector import ResultCollector
 
 

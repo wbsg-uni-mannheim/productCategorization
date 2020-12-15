@@ -10,7 +10,11 @@ import pandas as pd
 class ModelRunner:
 
     def __init__(self, path, test, experiment_type):
+
+        #Initialize logging
+        self.initialize_logging(path)
         self.logger = logging.getLogger(__name__)
+
         self.test = test
         if test:
             self.logger.warning('Run in Testmode!')
@@ -24,6 +28,16 @@ class ModelRunner:
 
         self.tree = None
         self.root = None
+
+    def initialize_logging(self, path):
+        # Extract experiment name from config for logging
+        config_path = path.split('/')
+        dataset = config_path[-2]
+        experiment_name = config_path[-1].split('.')[0]
+
+        log_file = '{}_{}.log'.format(dataset, experiment_name)
+        log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        logging.basicConfig(filename=log_file, filemode='w', level=logging.INFO, format=log_fmt)
 
     def load_configuration(self, path):
         with open(path) as json_file:

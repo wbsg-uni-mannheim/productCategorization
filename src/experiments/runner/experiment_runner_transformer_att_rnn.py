@@ -5,7 +5,7 @@ from src.data.preprocessing import preprocess
 from src.evaluation import scorer
 from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.models.transformers import utils
-from src.models.transformers.dataset.category_dataset_multi_label import CategoryDatasetMultiLabel
+from src.models.transformers.dataset.category_dataset_rnn import CategoryDatasetRNN
 from src.utils.result_collector import ResultCollector
 
 from transformers import TrainingArguments, Trainer
@@ -104,7 +104,7 @@ class ExperimentRunnerTransformerAttRNN(ExperimentRunner):
             # Normalize label values
             labels = [value.replace(' ', '_') for value in df_ds['category'].values]
 
-            tf_ds[key] = CategoryDatasetMultiLabel(texts, labels, tokenizer, normalized_encoder)
+            tf_ds[key] = CategoryDatasetRNN(texts, labels, tokenizer, normalized_encoder)
 
         timestamp = time.time()
         string_timestamp = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')

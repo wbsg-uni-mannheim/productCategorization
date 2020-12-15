@@ -5,7 +5,7 @@ from src.data.preprocessing import preprocess
 from src.evaluation import scorer
 from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.models.transformers import utils
-from src.models.transformers.dataset.category_dataset_multi_label import CategoryDatasetMultiLabel
+from src.models.transformers.dataset.category_dataset_rnn import CategoryDatasetRNN
 from src.utils.result_collector import ResultCollector
 
 from transformers import TrainingArguments, Trainer, RobertaConfig
@@ -123,10 +123,7 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
         config.num_labels_per_level = num_labels_per_level
         config.next_labels_on_level = next_labels_on_level
         config.hierarchy_certainty = self.parameter['hierarchy_certainty']
-        if self.parameter['focal_loss'] == 'True':
-            config.focal_loss = True
-        else:
-            config.focal_loss = False
+        config.focal_loss = self.parameter['focal_loss']
 
         tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], config=config)
 
@@ -146,7 +143,7 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
             # Normalize label values
             labels = [value.replace(' ', '_') for value in df_ds['category'].values]
 
-            tf_ds[key] = CategoryDatasetMultiLabel(texts, labels, tokenizer, normalized_encoder)
+            tf_ds[key] = CategoryDatasetRNN(texts, labels, tokenizer, normalized_encoder)
 
         timestamp = time.time()
         string_timestamp = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')

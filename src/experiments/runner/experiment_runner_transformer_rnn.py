@@ -5,10 +5,10 @@ from src.data.preprocessing import preprocess
 from src.evaluation import scorer
 from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.models.transformers import utils
-from src.models.transformers.dataset.category_dataset_multi_label import CategoryDatasetMultiLabel
+from src.models.transformers.dataset.category_dataset_rnn import CategoryDatasetRNN
 from src.utils.result_collector import ResultCollector
 
-from transformers import TrainingArguments, Trainer
+from transformers import TrainingArguments, Trainer, RobertaConfig
 
 
 class ExperimentRunnerTransformerRNN(ExperimentRunner):
@@ -64,19 +64,30 @@ class ExperimentRunnerTransformerRNN(ExperimentRunner):
         leaf_nodes = [decoder[node] for node in leaf_nodes]
 
         counter = 0
+        longest_path = 0
         for key in encoder:
             if key in leaf_nodes:
                 path = self.determine_path_to_root([encoder[key]])
-                if 'exploit_hierarchy' in self.parameter and self.parameter['exploit_hierarchy'] == "True":
+                if 'exploit_hierarchy' in self.parameter and self.parameter['exploit_hierarchy']:
                     path = self.normalize_path_from_root_per_parent(path)
                 
                 normalized_encoder[key] = {'original_key': encoder[key], 'derived_key': counter,
                                            'derived_path': path}
                 normalized_decoder[counter] = {'original_key': encoder[key], 'value': key}
+                if len(path) > longest_path:
+                    longest_path = len(path)
+
                 counter += 1
 
-        # Total number of labels is determined by the number of labels in the tree
-        number_of_labels = len(self.tree)
+        #Align path length
+        fill_up_category = len(self.tree)
+
+        for key in normalized_encoder:
+            while len(normalized_encoder[key]['derived_path']) < longest_path:
+                normalized_encoder[key]['derived_path'].append(fill_up_category)
+
+        # Total number of labels is determined by the number of labels in the tree + 1 for out of category
+        number_of_labels = len(self.tree) + 1
 
         return normalized_encoder, normalized_decoder, number_of_labels
 
@@ -84,9 +95,14 @@ class ExperimentRunnerTransformerRNN(ExperimentRunner):
         """Run experiments"""
         result_collector = ResultCollector(self.dataset_name, self.experiment_type)
 
-        normalized_encoder, normalized_decoder, number_leaf_nodes = self.encode_labels()
+        normalized_encoder, normalized_decoder, number_of_labels = self.encode_labels()
 
-        tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], self.parameter['pretrained_model_or_path'], number_leaf_nodes)
+        config = RobertaConfig.from_pretrained("roberta-base")
+        config.num_labels = number_of_labels
+        config.focal_loss = self.parameter['focal_loss']
+
+        tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'],
+                                                             self.parameter['pretrained_model_or_path'], config=config)
 
         tf_ds = {}
         for key in self.dataset:
@@ -104,7 +120,7 @@ class ExperimentRunnerTransformerRNN(ExperimentRunner):
             # Normalize label values
             labels = [value.replace(' ', '_') for value in df_ds['category'].values]
 
-            tf_ds[key] = CategoryDatasetMultiLabel(texts, labels, tokenizer, normalized_encoder)
+            tf_ds[key] = CategoryDatasetRNN(texts, labels, tokenizer, normalized_encoder)
 
         timestamp = time.time()
         string_timestamp = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')
@@ -125,7 +141,8 @@ class ExperimentRunnerTransformerRNN(ExperimentRunner):
             metric_for_best_model=self.parameter['metric_for_best_model'],
             load_best_model_at_end=True,
             gradient_accumulation_steps=self.parameter['gradient_accumulation_steps'],
-            seed=self.parameter['seed']
+            seed=self.parameter['seed'],
+            disable_tqdm=True
         )
 
         evaluator = scorer.HierarchicalScorer(self.parameter['experiment_name'], self.tree,

@@ -276,11 +276,22 @@ class HierarchicalScorer:
         labels_paths = pred.label_ids
         preds_paths = [list(prediction.argmax(-1)) for prediction in pred.predictions]
 
-        labels = [label[-1] for label in labels_paths]
-        preds = [pred[-1] for pred in preds_paths]
-
         labels_per_lvl = np.array(labels_paths).transpose().tolist()
         preds_per_lvl = np.array(preds_paths).transpose().tolist()
+
+        #Remove fill up category
+        reduced_label_paths = []
+        reduced_pred_paths = []
+        fill_up_category = len(self.tree)
+        for label_path, pred_path in zip(labels_paths, preds_paths):
+            label_path = label_path[label_path != fill_up_category]
+            pred_path = pred_path[pred_path != fill_up_category]
+
+            reduced_label_paths.append(label_path)
+            reduced_pred_paths.append(pred_path)
+
+        labels = [label[-1] for label in reduced_label_paths]
+        preds = [pred[-1] for pred in reduced_pred_paths]
 
         return labels, preds, labels_per_lvl, preds_per_lvl
 

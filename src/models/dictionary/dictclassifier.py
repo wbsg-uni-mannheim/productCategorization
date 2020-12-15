@@ -1,7 +1,5 @@
 """Dictionary based approach --> serves as baseline"""
 import logging
-import pickle
-from pathlib import Path
 import nltk
 
 from nltk.stem import WordNetLemmatizer
