@@ -125,49 +125,49 @@ def store_dataset_for_language_modelling(dataset, dataset_name):
     #
     # logger.info('Dataset prepared for language modelling {}!'.format(dataset_name))
 
-    relative_path = 'data/processed/{}/language-modelling/{}_language_modelling_{}_with_descriptions.txt'.format(
+        relative_path = 'data/processed/{}/language-modelling/{}_language_modelling_{}_with_descriptions.txt'.format(
         dataset_name, split, dataset_name)
-    file_path = data_dir.joinpath(relative_path)
-    with open(file_path, 'w') as file:
+        file_path = data_dir.joinpath(relative_path)
+        with open(file_path, 'w') as file:
 
-        for index, row in dataset[split].iterrows():
+            for index, row in dataset[split].iterrows():
             # preprocess value
-            prep_title = preprocess(row['title'])
-            line = '{}\n'.format(prep_title)
-            file.write(line)
+                prep_title = preprocess(row['title'])
+                line = '{}\n'.format(prep_title)
+                file.write(line)
 
-            description_values = row['description'].split('.')
-            for value in description_values:
-                if len(value) > 4:
-                    prep_value = preprocess(value)
-                    line = '{}.\n'.format(prep_value)
-                    file.write(line)
+                description_values = row['description'].split('.')
+                for value in description_values:
+                    if len(value) > 4:
+                        prep_value = preprocess(value)
+                        line = '{}.\n'.format(prep_value)
+                        file.write(line)
 
-    logger.info('File {} created for Language Modelling!'.format(relative_path))
+        logger.info('File {} created for Language Modelling!'.format(relative_path))
 
-    relative_path = 'data/processed/{}/language-modelling/{}_language_modelling_{}_with_category_as_sentence_and_descriptions.txt'.format(
-        dataset_name, split, dataset_name)
-    file_path = data_dir.joinpath(relative_path)
-    with open(file_path, 'w') as file:
+        relative_path = 'data/processed/{}/language-modelling/{}_language_modelling_{}_with_category_as_sentence_and_descriptions.txt'.format(
+            dataset_name, split, dataset_name)
+        file_path = data_dir.joinpath(relative_path)
+        with open(file_path, 'w') as file:
 
-        for index, row in dataset[split].iterrows():
-            # preprocess value
-            prep_title = preprocess(row['title'])
-            categories = row['path_list'].split('>')
-            categories = [value.split('_')[1] for value in categories]
-            categories = [preprocess(value) for value in categories]
-            prep_catgories = ', '.join(categories)
-            line = '{} belongs to {}.\n'.format(prep_title, prep_catgories)
-            file.write(line)
+            for index, row in dataset[split].iterrows():
+                # preprocess value
+                prep_title = preprocess(row['title'])
+                categories = row['path_list'].split('>')
+                categories = [value.split('_')[1] for value in categories]
+                categories = [preprocess(value) for value in categories]
+                prep_catgories = ', '.join(categories)
+                line = '{} belongs to {}.\n'.format(prep_title, prep_catgories)
+                file.write(line)
 
-            description_values = row['description'].split('.')
-            for value in description_values:
-                if len(value) > 4:
-                    prep_value = preprocess(value)
-                    line = '{}.\n'.format(prep_value)
-                    file.write(line)
+                description_values = row['description'].split('.')
+                for value in description_values:
+                    if len(value) > 4:
+                        prep_value = preprocess(value)
+                        line = '{}.\n'.format(prep_value)
+                        file.write(line)
 
-    logger.info('File {} created for Language Modelling!'.format(relative_path))
+        logger.info('File {} created for Language Modelling!'.format(relative_path))
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

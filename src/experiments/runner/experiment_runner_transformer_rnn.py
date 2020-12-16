@@ -99,7 +99,6 @@ class ExperimentRunnerTransformerRNN(ExperimentRunner):
 
         config = RobertaConfig.from_pretrained("roberta-base")
         config.num_labels = number_of_labels
-        config.focal_loss = self.parameter['focal_loss']
 
         tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'],
                                                              self.parameter['pretrained_model_or_path'], config=config)
@@ -109,13 +108,16 @@ class ExperimentRunnerTransformerRNN(ExperimentRunner):
             df_ds = self.dataset[key]
             if self.test:
                 # load only subset of the data
-                df_ds = df_ds[:20]
-                self.logger.warning('Run in test mode - dataset reduced to 20 records!')
+                df_ds = df_ds[:10]
+                self.logger.warning('Run in test mode - dataset reduced to 10 records!')
 
-            if self.parameter['preprocessing']:
-                texts = [preprocess(value) for value in df_ds['title'].values]
+            if self.parameter['description']:
+                texts = list((df_ds['title'] + ' - ' + df_ds['description']).values)
             else:
-                texts = list(df_ds['title'].values)
+                texts = df_ds['title'].values
+
+            if self.parameter['preprocessing'] == True:
+                texts = [preprocess(value) for value in texts]
 
             # Normalize label values
             labels = [value.replace(' ', '_') for value in df_ds['category'].values]
@@ -155,6 +157,7 @@ class ExperimentRunnerTransformerRNN(ExperimentRunner):
             compute_metrics=evaluator.compute_metrics_transformers_rnn
         )
 
+        self.logger.info('Start training!')
         trainer.train()
 
         for split in ['train', 'validate', 'test']:

@@ -14,7 +14,6 @@ class RobertaForHierarchicalClassificationRNN(RobertaPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
-        self.focal_loss = config.focal_loss
 
         self.roberta = RobertaModel(config, add_pooling_layer=False)
 
@@ -69,15 +68,12 @@ class RobertaForHierarchicalClassificationRNN(RobertaPreTrainedModel):
 
             logits_list.append(logits_lvl)
 
-            if self.focal_loss:
-                loss_fct = FocalLoss()
-            else:
-                loss_fct = CrossEntropyLoss()
+            loss_fct = CrossEntropyLoss()
 
             if loss is None:
-                loss = loss_fct(logits_list[i].view(-1, self.num_labels), transposed_labels[i].view(-1))
+                loss = loss_fct(logits_lvl.view(-1, self.num_labels), transposed_labels[i].view(-1))
             else:
-                loss += loss_fct(logits_list[i].view(-1, self.num_labels), transposed_labels[i].view(-1))
+                loss += loss_fct(logits_lvl.view(-1, self.num_labels), transposed_labels[i].view(-1))
 
         logits = torch.stack(logits_list)
         logits = torch.transpose(logits, 0, 1)

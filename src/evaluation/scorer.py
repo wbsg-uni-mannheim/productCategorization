@@ -273,27 +273,32 @@ class HierarchicalScorer:
         return self.compute_metrics(labels, preds, labels_per_lvl, preds_per_lvl)
 
     def transpose_rnn_hierarchy(self, pred):
-        labels_paths = pred.label_ids
+        labels_paths = [list(label) for label in pred.label_ids]
         preds_paths = [list(prediction.argmax(-1)) for prediction in pred.predictions]
 
         labels_per_lvl = np.array(labels_paths).transpose().tolist()
         preds_per_lvl = np.array(preds_paths).transpose().tolist()
 
-        #Remove fill up category
-        reduced_label_paths = []
-        reduced_pred_paths = []
-        fill_up_category = len(self.tree)
-        for label_path, pred_path in zip(labels_paths, preds_paths):
-            label_path = label_path[label_path != fill_up_category]
-            pred_path = pred_path[pred_path != fill_up_category]
+        # Derive leaf predictions
+        fill_cat = len(self.tree)
 
-            reduced_label_paths.append(label_path)
-            reduced_pred_paths.append(pred_path)
-
-        labels = [label[-1] for label in reduced_label_paths]
-        preds = [pred[-1] for pred in reduced_pred_paths]
+        # Derive prediction
+        labels = [self.derive_leaf_node(label_path, fill_cat) for label_path in labels_paths]
+        preds = [self.derive_leaf_node(pred_path, fill_cat) for pred_path in preds_paths]
 
         return labels, preds, labels_per_lvl, preds_per_lvl
+
+    def derive_leaf_node(self, path, fill_cat):
+        """Recursively search for the last element that is not the fill up category"""
+        last_element = path[-1]
+        # Last element found
+        if last_element != fill_cat:
+            return last_element
+        # List becomes empty --> return out of category (0)
+        if len(path) == 1:
+            return 0
+
+        return self.derive_leaf_node(path[:len(path)-1], fill_cat)
 
     def compute_metrics_no_encoding(self, labels, preds):
         decoder = dict(self.tree.nodes(data="name"))

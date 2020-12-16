@@ -115,6 +115,7 @@ class ExperimentRunnerTransformerFlat(ExperimentRunner):
             compute_metrics=evaluator.compute_metrics_transformers_flat
         )
 
+        self.logger.info('Start training!')
         trainer.train()
 
         for split in ['train', 'validate', 'test']:
