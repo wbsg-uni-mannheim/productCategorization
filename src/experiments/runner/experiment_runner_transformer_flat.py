@@ -8,7 +8,7 @@ from src.models.transformers import utils
 from src.models.transformers.dataset.category_dataset_flat import CategoryDatasetFlat
 from src.utils.result_collector import ResultCollector
 
-from transformers import TrainingArguments, Trainer
+from transformers import TrainingArguments, Trainer, RobertaConfig
 
 
 class ExperimentRunnerTransformerFlat(ExperimentRunner):
@@ -51,9 +51,14 @@ class ExperimentRunnerTransformerFlat(ExperimentRunner):
         """Run experiments"""
         result_collector = ResultCollector(self.dataset_name, self.experiment_type)
 
-        normalized_encoder, normalized_decoder, number_leaf_nodes = self.encode_labels()
+        normalized_encoder, normalized_decoder, number_of_labels = self.encode_labels()
 
-        tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], self.parameter['model_name'], number_leaf_nodes)
+        config = RobertaConfig.from_pretrained("roberta-base")
+        config.num_labels = number_of_labels
+
+        tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'],
+                                                             self.parameter['pretrained_model_or_path'],
+                                                             config)
 
         tf_ds = {}
         for key in self.dataset:
@@ -63,10 +68,14 @@ class ExperimentRunnerTransformerFlat(ExperimentRunner):
                 df_ds = df_ds[:20]
                 self.logger.warning('Run in test mode - dataset reduced to 20 records!')
 
-            if self.parameter['preprocessing'] == True:
-                texts = [preprocess(value) for value in df_ds['title'].values]
+            if self.parameter['description']:
+                texts = list((df_ds['title'] + ' - ' + df_ds['description']).values)
             else:
-                texts = list(df_ds['title'].values)
+                texts = df_ds['title'].values
+
+            if self.parameter['preprocessing'] == True:
+                texts = [preprocess(value) for value in texts]
+
 
             # Normalize label values
             labels = [value.replace(' ', '_') for value in df_ds['category'].values]

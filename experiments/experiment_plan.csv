@@ -1,0 +1,32 @@
+None,Title,Basic Softmax Head (RobertaForSequenceClassification)
+None,Title,Recurrent Neural Network
+None,Title + Description (Just concatenate),Basic Softmax Head (RobertaForSequenceClassification)
+None,Title + Description (Just concatenate),Recurrent Neural Network
+Training Set - Title,Title,Basic Softmax Head (RobertaForSequenceClassification)
+Training Set - Title,Title,Recurrent Neural Network
+Training Set - Title,Title + Description (Just concatenate),Basic Softmax Head (RobertaForSequenceClassification)
+Training Set - Title,Title + Description (Just concatenate),Recurrent Neural Network
+Training Set - Title + Description (each sentence of description),Title,Basic Softmax Head (RobertaForSequenceClassification)
+Training Set - Title + Description (each sentence of description),Title,Recurrent Neural Network
+Training Set - Title + Description (each sentence of description),Title + Description (Just concatenate),Basic Softmax Head (RobertaForSequenceClassification)
+Training Set - Title + Description (each sentence of description),Title + Description (Just concatenate),Recurrent Neural Network
+Training Set - Title +  Path ([Title] belongs to [Path]),Title,Basic Softmax Head (RobertaForSequenceClassification)
+Training Set - Title +  Path ([Title] belongs to [Path]),Title,Recurrent Neural Network
+Training Set - Title +  Path ([Title] belongs to [Path]),Title + Description (Just concatenate),Basic Softmax Head (RobertaForSequenceClassification)
+Training Set - Title +  Path ([Title] belongs to [Path]),Title + Description (Just concatenate),Recurrent Neural Network
+Training Set - Title + Description + Path ([Title] belongs to [Path] - each sentence of the description),Title,Basic Softmax Head (RobertaForSequenceClassification)
+Training Set - Title + Description + Path ([Title] belongs to [Path] - each sentence of the description),Title,Recurrent Neural Network
+Training Set - Title + Description + Path ([Title] belongs to [Path] - each sentence of the description),Title + Description (Just concatenate),Basic Softmax Head (RobertaForSequenceClassification)
+Training Set - Title + Description + Path ([Title] belongs to [Path] - each sentence of the description),Title + Description (Just concatenate),Recurrent Neural Network
+WDC Product Corpus - Selected Titles,Title,Basic Softmax Head (RobertaForSequenceClassification)
+WDC Product Corpus - Selected Titles,Title,Recurrent Neural Network
+WDC Product Corpus - Selected Titles,Title + Description (Just concatenate),Basic Softmax Head (RobertaForSequenceClassification)
+WDC Product Corpus - Selected Titles,Title + Description (Just concatenate),Recurrent Neural Network
+WDC Product Corpus - Selected Titles + Description (each sentence of the description),Title,Basic Softmax Head (RobertaForSequenceClassification)
+WDC Product Corpus - Selected Titles + Description (each sentence of the description),Title,Recurrent Neural Network
+WDC Product Corpus - Selected Titles + Description (each sentence of the description),Title + Description (Just concatenate),Basic Softmax Head (RobertaForSequenceClassification)
+WDC Product Corpus - Selected Titles + Description (each sentence of the description),Title + Description (Just concatenate),Recurrent Neural Network
+WDC Product Corpus - Selected Titles + Description + Path ([Title] belongs to [Path] - each sentence of the description),Title,Basic Softmax Head (RobertaForSequenceClassification)
+WDC Product Corpus - Selected Titles + Description + Path ([Title] belongs to [Path] - each sentence of the description),Title,Recurrent Neural Network
+WDC Product Corpus - Selected Titles + Description + Path ([Title] belongs to [Path] - each sentence of the description),Title + Description (Just concatenate),Basic Softmax Head (RobertaForSequenceClassification)
+WDC Product Corpus - Selected Titles + Description + Path ([Title] belongs to [Path] - each sentence of the description),Title + Description (Just concatenate),Recurrent Neural Network

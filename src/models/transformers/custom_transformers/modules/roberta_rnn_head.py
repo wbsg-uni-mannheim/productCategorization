@@ -16,7 +16,9 @@ class RobertaRNNHead(nn.Module):
         self.i2o = nn.Linear(config.hidden_size + config.hidden_size, num_labels)
 
         self.o2o = nn.Linear(config.hidden_size + config.num_labels, config.num_labels)
-        self.softmax = nn.LogSoftmax(dim=1)
+
+        # Not used for now!
+        #self.softmax = nn.LogSoftmax(dim=1)
 
 
     def forward(self, input, hidden):

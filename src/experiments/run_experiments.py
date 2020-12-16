@@ -2,7 +2,7 @@
 
 import click
 import logging
-#import torch.multiprocessing as mp
+from sys import platform
 import json
 
 from src.experiments.runner.experiment_runner_dict import ExperimentRunnerDict
@@ -18,8 +18,12 @@ from src.experiments.runner.experiment_runner_transformer_hierarchy import Exper
 @click.option('--test/--no-test', default=False, help='Test configuration - Run only on small subset')
 @click.option('--experiment_type', help='Experiment Type')
 def main(configuration, test, experiment_type):
+    logger = logging.getLogger(__name__)
     #Extract experiment name from config for logging
-    config_path = configuration.split('/')
+    if platform == "win32":
+        config_path = configuration.split('\\')
+    else:
+        config_path = configuration.split('/')
     dataset = config_path[-2]
     experiment_name = config_path[-1].split('.')[0]
 
@@ -32,12 +36,14 @@ def main(configuration, test, experiment_type):
     # Augment experiments
     generated_experiments = augment_experiments(configuration)
 
+    if test:
+        generated_experiments = generated_experiments[:1]
+
     for config in generated_experiments:
+
         run_experiment(config, test, experiment_type)
 
-        #process = mp.Process(target=run_experiment, args=args)
-        #process.start()
-        #process.join()
+    logger.info('Finished running experiments from {}!'.format(configuration))
 
 #@click.command()
 #@click.option('--configuration', help='Configuration used to run the experiments')
@@ -67,7 +73,7 @@ def run_experiment(configuration, test, experiment_type):
 def augment_experiments(experiment):
     logger = logging.getLogger(__name__)
 
-    learning_rates = [1e-5, 5e-5, 1e-4]
+    learning_rates = [1e-5, 3e-5, 5e-5, 8e-5, 1e-4]
     seeds = [42, 13, 9]
 
     # Load base configuration
@@ -82,7 +88,10 @@ def augment_experiments(experiment):
         exp_config['parameter']['learning_rate'] = learning_rate
         for seed in seeds:
             exp_config['parameter']['seed'] = seed
-            prefix_experiment_name = experiment_path.split('/')[-1]
+            if platform == "win32":
+                prefix_experiment_name = experiment_path.split('\\')[-1]
+            else:
+                prefix_experiment_name = experiment_path.split('/')[-1]
             experiment_name = '{}_{}_{}'.format(prefix_experiment_name, learning_rate, seed)
             exp_config['parameter']['experiment_name'] = experiment_name
 

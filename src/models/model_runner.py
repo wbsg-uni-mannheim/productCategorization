@@ -2,6 +2,7 @@ import json
 import logging
 import pickle
 from pathlib import Path
+from sys import platform
 
 import os
 import pandas as pd
@@ -31,7 +32,10 @@ class ModelRunner:
 
     def initialize_logging(self, path):
         # Extract experiment name from config for logging
-        config_path = path.split('/')
+        if platform == "win32" and '\\' in path:
+            config_path = path.split('\\')
+        else:
+            config_path = path.split('/')
         dataset = config_path[-2]
         experiment_name = config_path[-1].split('.')[0]
 

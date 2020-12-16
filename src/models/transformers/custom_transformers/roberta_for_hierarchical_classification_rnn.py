@@ -1,5 +1,5 @@
 import torch
-from torch.nn import NLLLoss
+from torch.nn import NLLLoss, CrossEntropyLoss
 from transformers import RobertaModel
 from transformers.modeling_outputs import SequenceClassifierOutput
 from transformers.modeling_roberta import RobertaPreTrainedModel
@@ -72,7 +72,7 @@ class RobertaForHierarchicalClassificationRNN(RobertaPreTrainedModel):
             if self.focal_loss:
                 loss_fct = FocalLoss()
             else:
-                loss_fct = NLLLoss()
+                loss_fct = CrossEntropyLoss()
 
             if loss is None:
                 loss = loss_fct(logits_list[i].view(-1, self.num_labels), transposed_labels[i].view(-1))
