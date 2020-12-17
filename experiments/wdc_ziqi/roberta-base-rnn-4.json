@@ -13,5 +13,5 @@
       "preprocessing": true,
       "description": true
     },
-  "type": "transformer-based"
+  "type": "transformer-based-rnn"
 }
