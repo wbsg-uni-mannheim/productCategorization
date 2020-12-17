@@ -17,7 +17,7 @@ def main(file_path, output_path):
     breadcrumbs = set()
     breadcrumblists = set()
 
-    with open(file_path, 'rt', encoding='utf-8') as f:
+    with gzip.open(file_path, 'rt', encoding='utf-8') as f:
         with open(output_path, 'w', encoding='utf-8') as out_f:
             counter = 0
             product = {'Title': 'Title', 'Description': 'Description', 'Category': 'Category',
