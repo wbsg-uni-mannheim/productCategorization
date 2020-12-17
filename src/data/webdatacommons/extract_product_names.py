@@ -17,7 +17,7 @@ def main(file_path, output_path):
     breadcrumbs = set()
     breadcrumblists = set()
 
-    with gzip.open(file_path, 'rt', encoding='utf-8') as f:
+    with open(file_path, 'rt', encoding='utf-8') as f:
         with open(output_path, 'w', encoding='utf-8') as out_f:
             counter = 0
             product = {'Title': 'Title', 'Description': 'Description', 'Category': 'Category',
@@ -27,44 +27,45 @@ def main(file_path, output_path):
                 reader = csv.reader([line], delimiter= ' ', quotechar='"')
                 try:
                     for r in reader:
-                        if r[3] != uri:
-                            uri = r[3]
-                            if len(product['Title']) > 0 and \
+                        if len(r) > 4:
+                            if r[3] != uri:
+                                uri = r[3]
+                                if len(product['Title']) > 0 and \
                                     (len(product['Category']) > 0 \
-                                or len(product['Breadcrumb']) > 0 \
-                                or len(product['BreadcrumbList']) > 0):
+                                    or len(product['Breadcrumb']) > 0 \
+                                    or len(product['BreadcrumbList']) > 0):
 
-                                line = '{};{};{};{};{}\n'.format(product['Title'], product['Description'],
+                                    line = '{};{};{};{};{}\n'.format(product['Title'], product['Description'],
                                                               product['Category'], product['Breadcrumb'],
                                                               product['BreadcrumbList'])
-                                out_f.write(line)
-                                # Initialize product dict
-                                product = {key: '' for key in product }
-                                counter += 1
+                                    out_f.write(line)
+                                    # Initialize product dict
+                                    product = {key: '' for key in product }
+                                    counter += 1
 
-                                if counter % 100 == 0:
-                                    logger.info('Written {} product names to disc.'.format(counter))
+                                    if counter % 100 == 0:
+                                        logger.info('Written {} product names to disc.'.format(counter))
 
-                                if counter == 100000:
-                                    break
+                                    if counter == 100000:
+                                        break
 
-                        if r[1] == '<http://schema.org/Product/name>' and '@en' in r[2]:
-                            product['Title'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
+                            if r[1] == '<http://schema.org/Product/name>' and '@en' in r[2]:
+                                product['Title'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
 
-                        if r[1] == '<http://schema.org/Product/description>':
-                            product['Description'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
+                            if r[1] == '<http://schema.org/Product/description>':
+                                product['Description'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
 
-                        if 'category' in r[1]:
-                            categories.add(r[1])
-                            product['Category'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
+                            if 'category' in r[1]:
+                                categories.add(r[1])
+                                product['Category'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
 
-                        if 'breadcrumb' in r[1]:
-                            breadcrumbs.add(r[1])
-                            product['Breadcrumb'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
+                            if 'breadcrumb' in r[1]:
+                                breadcrumbs.add(r[1])
+                                product['Breadcrumb'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
 
-                        if 'breadcrumblist' in r[1]:
-                            breadcrumblists.add(r[1])
-                            product['BreadcrumbList'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
+                            if 'breadcrumblist' in r[1]:
+                                breadcrumblists.add(r[1])
+                                product['BreadcrumbList'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
 
                 except csv.Error as e:
                     print(e)
