@@ -45,13 +45,17 @@ class TestConfiguration(unittest.TestCase):
 
                     if experiment_type in new_model_experiment_types:
                         counter = counter + 1
-                        parameter = experiments["parameter"]
+                        experiment_name = experiments["parameter"]["experiment_name"]
+
+                        parameter = experiments["parameter"].copy()
+                        del parameter["experiment_name"]
+
                         hash_parameter = hash(str(parameter))
                         self.assertNotIn(hash_parameter, parameter_hashes, 'Parameter of configuration {} already known!'
                                          .format(file_path))
                         parameter_hashes.append(hash_parameter)
 
-                        experiment_name = parameter["experiment_name"]
+
 
                     elif experiment_type in huggingface_experiment_types:
                         counter = counter + 1

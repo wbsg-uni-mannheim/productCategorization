@@ -3,7 +3,7 @@
   "parameter":
     {
       "epochs": 25,
-      "experiment_name": "roberta-base-rnn-9",
+      "experiment_name": "roberta-base-rnn-10",
       "gradient_accumulation_steps": 2,
       "metric_for_best_model": "h_f1",
       "model_name": "roberta-base-hierarchy-rnn",
