@@ -2,7 +2,8 @@ import csv
 import gzip
 import logging
 import copy
-from multiprocessing import Process, Pipe
+from multiprocessing import Process
+import time
 
 import click
 
@@ -86,6 +87,11 @@ def main(file_path, output_path):
                             node_relevant = True
                             logger.info(r)
 
+                        if r[1] == '<http://schema.org/Product/breadcrumb>':
+                            node = r[0]
+                            node_relevant = True
+                            logger.info(r)
+
                         if 'category' in r[1].lower():
                             prep_value = preprocess_value(r[2])
                             if len(prep_value) > 0 and prep_value != 'null':
@@ -122,8 +128,13 @@ def main(file_path, output_path):
         logger.info('Breadcrumblists value: {}'.format(value))
 
 def parallel_write(p, products, path):
+    logger = logging.getLogger(__name__)
     if p != None:
+        start = time.time()
         p.join()
+        end = time.time()
+        elapsed_time = end - start
+        logger.info('Waited for {}'.format(elapsed_time))
     p = Process(target=write_to_disk, args=(copy.deepcopy(products), path))
     p.start()
     return p
@@ -141,7 +152,9 @@ def write_to_disk(products, path):
 
 
 def preprocess_value(value):
-    prep_value = preprocess(value.split('@')[0].replace('\\n', ''))
+    value = value.split('@')[0]
+    value = value.replace('\\n', '').replace('\\t', '').replace("\xc2\xa0", " ")
+    prep_value = preprocess(value)
     return prep_value
 
 if __name__ == '__main__':
