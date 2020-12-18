@@ -79,7 +79,7 @@ def main(file_path, output_path):
                         #        or r[2] == '_:nodefe8e433a782f383d89dc215c26b12724':
                         #    logger.info(r)
 
-                        if 'http://store.ergobaby.com/accessories' in r[4]:
+                        if 'http://store.ergobaby.com/accessories' in r[3]:
                             logger.info(r)
 
                         if r[1] == '<http://schema.org/Product/name>' and '@en' in r[2]:
