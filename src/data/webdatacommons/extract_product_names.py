@@ -121,7 +121,7 @@ def main(file_path, output_path):
                                 if r[1] == '<http://schema.org/Breadcrumb/child>':
                                     node = r[2]
                                     node_relevant = True
-                                    logger.info(r)
+                                    #logger.info(r)
                                 else:
                                     prep_value = preprocess_value(r[2])
                                     if len(prep_value) > 0 and prep_value != 'null':
@@ -163,7 +163,12 @@ def parallel_write(p, products, path):
 def write_to_disk(products, path):
     with open(path, 'a') as out_f:
         for product in products:
-            line = '{};{};{};{};{};{}\n'.format(product['Title'], product['Description'],
+            # No Description to reduce file sizes
+            #line = '{};{};{};{};{};{}\n'.format(product['Title'], product['Description'],
+            #                                    product['Category'], product['Breadcrumb'],
+            #                                    product['BreadcrumbList'],
+            #                                    product['Breadcrumb-Predicate'])
+            line = '{};{};{};{};{}\n'.format(product['Title'],
                                                 product['Category'], product['Breadcrumb'],
                                                 product['BreadcrumbList'],
                                                 product['Breadcrumb-Predicate'])
