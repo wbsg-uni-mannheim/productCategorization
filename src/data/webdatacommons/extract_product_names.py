@@ -105,19 +105,30 @@ def main(file_path, output_path):
                                     product['Breadcrumb'] = prep_value
 
                         elif 'breadcrumblist' in r[1].lower():
-                            prep_value = preprocess_value(r[2])
-                            if len(prep_value) > 0 and prep_value != 'null':
-                                product['BreadcrumbList'] = '{} {}'.format(product['BreadcrumbList'],
+                            if '_:node' in r[2]:
+                                node = r[2]
+                                node_relevant = True
+                                #logger.info(r)
+                            else:
+                                prep_value = preprocess_value(r[2])
+                                if len(prep_value) > 0 and prep_value != 'null':
+                                    product['BreadcrumbList'] = '{} {}'.format(product['BreadcrumbList'],
                                                                            prep_value).lstrip()
-                                breadcrumbLists.add(r[1])
+                                    breadcrumbLists.add(r[1])
 
                         elif 'breadcrumb' in r[1].lower():
-                            prep_value = preprocess_value(r[2])
-                            if len(prep_value) > 0 and prep_value != 'null':
-                                product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
-                                product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'],
+                            if r[1] != '<http://schema.org/Breadcrumb/url>':
+                                if r[1] == '<http://schema.org/Breadcrumb/child>':
+                                    node = r[2]
+                                    node_relevant = True
+                                    logger.info(r)
+                                else:
+                                    prep_value = preprocess_value(r[2])
+                                    if len(prep_value) > 0 and prep_value != 'null':
+                                        product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
+                                        product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'],
                                                                                  r[1]).lstrip()
-                                breadcrumbs.add(r[1])
+                                        breadcrumbs.add(r[1])
 
             except csv.Error as e:
                 print(e)
@@ -161,7 +172,7 @@ def write_to_disk(products, path):
 
 def preprocess_value(value):
     value = value.split('@')[0]
-    value = value.replace('\\n', '').replace('\\t', '').replace("\xc2\xa0", " ")
+    value = value.replace('\\n', '').replace('\\t', '').replace('\\u00a0', '')
     prep_value = preprocess(value)
     return prep_value
 
