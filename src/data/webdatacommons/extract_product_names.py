@@ -1,6 +1,8 @@
 import csv
 import gzip
 import logging
+import copy
+from multiprocessing import Process, Pipe
 
 import click
 
@@ -17,95 +19,98 @@ def main(file_path, output_path):
     breadcrumbs = set()
     breadcrumbLists = set()
 
+    collected_products = []
+    counter = 0
+    product = {'Title': 'Title', 'Description': 'Description', 'Category': 'Category',
+               'Breadcrumb': 'Breadcrumb', 'BreadcrumbList': 'BreadcrumbList',
+               'Breadcrumb-Predicate': 'Breadcrumb-Predicate'}
+    uri = 'initial'
+    node = ''
+    node_relevant = False
+    p = None  # Process for Multithreading
+
+    # Initialize output file
+    open(output_path, 'w').close()
+    logger.info('Inialize output file {}!'.format(output_path))
+
     with gzip.open(file_path, 'rt', encoding='utf-8') as f:
-        with open(output_path, 'w', encoding='utf-8') as out_f:
-            counter = 0
-            product = {'Title': 'Title', 'Description': 'Description', 'Category': 'Category',
-                       'Breadcrumb': 'Breadcrumb', 'BreadcrumbList': 'BreadcrumbList',
-                       'Breadcrumb-Predicate': 'Breadcrumb-Predicate'}
-            uri = 'initial'
-            node = ''
-            node_relevant = False
-            for i, line in enumerate(f):
-                reader = csv.reader([line], delimiter= ' ', quotechar='"')
-                try:
-                    for r in reader:
-                        if len(r) > 4:
 
-                            if r[0] != node:
-                                node_relevant = False
-                            if node_relevant:
-                                logger.info(r)
+        for i, line in enumerate(f):
+            reader = csv.reader([line], delimiter= ' ', quotechar='"')
+            try:
+                for r in reader:
+                    if len(r) > 4:
 
-                            if r[3] != uri:
-                                uri = r[3]
-                                if len(product['Title']) > 0 and \
-                                    (len(product['Category']) > 0 \
-                                    or len(product['Breadcrumb']) > 0 \
-                                    or len(product['BreadcrumbList']) > 0):
+                        if r[0] != node:
+                            node_relevant = False
+                        if node_relevant:
+                            logger.info(r)
 
-                                    line = '{};{};{};{};{};{}\n'.format(product['Title'], product['Description'],
-                                                              product['Category'], product['Breadcrumb'],
-                                                              product['BreadcrumbList'],
-                                                              product['Breadcrumb-Predicate'])
-                                    out_f.write(line)
-                                    # Initialize product dict
-                                    product = {key: '' for key in product }
-                                    counter += 1
+                        if r[3] != uri:
+                            uri = r[3]
+                            if len(product['Title']) > 0 and \
+                                (len(product['Category']) > 0 \
+                                or len(product['Breadcrumb']) > 0 \
+                                or len(product['BreadcrumbList']) > 0):
 
-                                    if counter % 10000 == 0:
-                                        logger.info('Written {} product names to disc.'.format(counter))
+                                collected_products.append(copy.deepcopy(product))
+                                # Initialize product dict
+                                product = {key: '' for key in product }
+                                counter += 1
 
-                                        for value in categories:
-                                            logger.info('Category value: {}'.format(value))
+                                if counter % 10000 == 0:
+                                    p = parallel_write(p, collected_products, output_path)
+                                    logger.info('Written {} product names to disc.'.format(counter))
 
-                                        for value in breadcrumbs:
-                                            logger.info('Breadcrumbs value: {}'.format(value))
+                                    for value in categories:
+                                        logger.info('Category value: {}'.format(value))
 
-                                        for value in breadcrumbLists:
-                                            logger.info('Breadcrumblists value: {}'.format(value))
+                                    for value in breadcrumbs:
+                                        logger.info('Breadcrumbs value: {}'.format(value))
 
-                                    if counter == 10000:
-                                        break
+                                    for value in breadcrumbLists:
+                                        logger.info('Breadcrumblists value: {}'.format(value))
 
-                            if r[1] == '<http://schema.org/Product/name>' and '@en' in r[2]:
-                                prep_value = preprocess_value(r[2])
-                                if len(prep_value) > 0 and prep_value != 'null':
-                                    product['Title'] = prep_value
+                        if r[1] == '<http://schema.org/Product/name>' and '@en' in r[2]:
+                            prep_value = preprocess_value(r[2])
+                            if len(prep_value) > 0 and prep_value != 'null':
+                                product['Title'] = prep_value
 
-                            if r[1] == '<http://schema.org/Product/description>':
-                                prep_value = preprocess_value(r[2])
-                                if len(prep_value) > 0 and prep_value != 'null':
-                                    product['Description'] = prep_value
+                        if r[1] == '<http://schema.org/Product/description>':
+                            prep_value = preprocess_value(r[2])
+                            if len(prep_value) > 0 and prep_value != 'null':
+                                product['Description'] = prep_value
 
-                            if 'breadcrumblist' in r[2].lower():
-                                node = r[0]
-                                node_relevant = True
-                                logger.info(r)
+                        if 'breadcrumblist' in r[2].lower():
+                            node = r[0]
+                            node_relevant = True
+                            logger.info(r)
 
-                            if 'category' in r[1].lower():
-                                prep_value = preprocess_value(r[2])
-                                if len(prep_value) > 0 and prep_value != 'null':
-                                    product['Category'] = '{} {}'.format(product['Category'], prep_value).lstrip()
-                                    categories.add(r[1])
+                        if 'category' in r[1].lower():
+                            prep_value = preprocess_value(r[2])
+                            if len(prep_value) > 0 and prep_value != 'null':
+                                product['Category'] = '{} {}'.format(product['Category'], prep_value).lstrip()
+                                categories.add(r[1])
 
-                            if 'breadcrumblist' in r[1].lower():
-                                prep_value = preprocess_value(r[2])
-                                if len(prep_value) > 0 and prep_value != 'null':
-                                    product['BreadcrumbList'] = '{} {}'.format(product['BreadcrumbList'], prep_value).lstrip()
-                                    breadcrumbLists.add(r[1])
+                        if 'breadcrumblist' in r[1].lower():
+                            prep_value = preprocess_value(r[2])
+                            if len(prep_value) > 0 and prep_value != 'null':
+                                product['BreadcrumbList'] = '{} {}'.format(product['BreadcrumbList'], prep_value).lstrip()
+                                breadcrumbLists.add(r[1])
 
-                            elif 'breadcrumb' in r[1].lower():
-                                prep_value = preprocess_value(r[2])
-                                if len(prep_value) > 0 and prep_value != 'null':
-                                    product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
-                                    product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'], r[1]).lstrip()
-                                    breadcrumbs.add(r[1])
+                        elif 'breadcrumb' in r[1].lower():
+                            prep_value = preprocess_value(r[2])
+                            if len(prep_value) > 0 and prep_value != 'null':
+                                product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
+                                product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'], r[1]).lstrip()
+                                breadcrumbs.add(r[1])
 
-                except csv.Error as e:
-                    print(e)
+            except csv.Error as e:
+                print(e)
 
+    p = parallel_write(p, collected_products, output_path)
     logger.info('Written {} product names to disc.'.format(counter))
+    p.join()
 
     for value in categories:
         logger.info('Category value: {}'.format(value))
@@ -115,6 +120,25 @@ def main(file_path, output_path):
 
     for value in breadcrumbLists:
         logger.info('Breadcrumblists value: {}'.format(value))
+
+def parallel_write(p, products, path):
+    if p != None:
+        p.join()
+    p = Process(target=write_to_disk, args=(copy.deepcopy(products), path))
+    p.start()
+    return p
+
+
+def write_to_disk(products, path):
+    with open(path, 'a') as out_f:
+        for product in products:
+            line = '{};{};{};{};{};{}\n'.format(product['Title'], product['Description'],
+                                                product['Category'], product['Breadcrumb'],
+                                                product['BreadcrumbList'],
+                                                product['Breadcrumb-Predicate'])
+            out_f.write(line)
+
+
 
 def preprocess_value(value):
     prep_value = preprocess(value.split('@')[0].replace('\\n', ''))
