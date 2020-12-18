@@ -88,9 +88,14 @@ def main(file_path, output_path):
                             logger.info(r)
 
                         if r[1] == '<http://schema.org/Product/breadcrumb>':
-                            node = r[0]
-                            node_relevant = True
-                            logger.info(r)
+                            if '_:node' in r[2]:
+                                node = r[2]
+                                node_relevant = True
+                                logger.info(r)
+                            else:
+                                prep_value = preprocess_value(r[2])
+                                if len(prep_value) > 0 and prep_value != 'null':
+                                    product['Breadcrumb'] = prep_value
 
                         if 'category' in r[1].lower():
                             prep_value = preprocess_value(r[2])
