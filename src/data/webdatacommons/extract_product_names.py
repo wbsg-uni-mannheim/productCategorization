@@ -47,9 +47,9 @@ def main(file_path, output_path):
                             node_relevant = False
                         #if node_relevant:
                         #    logger.info(r)
-                        if print_next_values > 0:
-                            print_next_values -= 1
-                            logger.info(r)
+                        #if print_next_values > 0:
+                        #    print_next_values -= 1
+                        #    logger.info(r)
 
                         if r[3] != uri:
                             uri = r[3]
