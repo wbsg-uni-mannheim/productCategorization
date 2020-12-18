@@ -2,7 +2,7 @@
   "dataset": "icecat",
   "parameter":
     {
-      "epochs": 25,
+      "epochs": 10,
       "experiment_name": "roberta-base-rnn-1",
       "gradient_accumulation_steps": 2,
       "metric_for_best_model": "h_f1",
