@@ -43,10 +43,10 @@ def main(file_path, output_path):
                 for r in reader:
                     if len(r) > 4:
 
-                        if r[0] != node:
-                            node_relevant = False
-                        if node_relevant:
-                            logger.info(r)
+                        #if r[0] != node:
+                        #    node_relevant = False
+                        #if node_relevant:
+                        #    logger.info(r)
 
                         if r[3] != uri:
                             uri = r[3]
@@ -122,18 +122,13 @@ def main(file_path, output_path):
                                     breadcrumbLists.add(r[1])
 
                         elif 'breadcrumb' in r[1].lower():
-                            if r[1] != '<http://schema.org/Breadcrumb/url>':
-                                if r[1] == '<http://schema.org/Breadcrumb/child>':
-                                    node = r[2]
-                                    node_relevant = True
-                                    #logger.info(r)
-                                else:
-                                    prep_value = preprocess_value(r[2])
-                                    if len(prep_value) > 0 and prep_value != 'null':
-                                        if prep_value not in product['Breadcrumb']:
-                                            product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
-                                            product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'], r[1]).lstrip()
-                                            breadcrumbs.add(r[1])
+                            if r[1] != '<http://schema.org/Breadcrumb/url>' and r[1] != '<http://schema.org/Breadcrumb/child>':
+                                prep_value = preprocess_value(r[2])
+                                if len(prep_value) > 0 and prep_value != 'null':
+                                    if prep_value not in product['Breadcrumb']:
+                                        product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
+                                        product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'], r[1]).lstrip()
+                                        breadcrumbs.add(r[1])
 
             except csv.Error as e:
                 print(e)
@@ -168,15 +163,17 @@ def parallel_write(p, products, path):
 def write_to_disk(products, path):
     with open(path, 'a') as out_f:
         for product in products:
-            # No Description to reduce file sizes
-            #line = '{};{};{};{};{};{}\n'.format(product['Title'], product['Description'],
-            #                                    product['Category'], product['Breadcrumb'],
-            #                                    product['BreadcrumbList'],
-            #                                    product['Breadcrumb-Predicate'])
-            line = '{};{};{};{};{}\n'.format(product['Title'],
+
+            line = '{};{};{};{};{};{}\n'.format(product['Title'], product['Description'],
                                                 product['Category'], product['Breadcrumb'],
                                                 product['BreadcrumbList'],
                                                 product['Breadcrumb-Predicate'])
+
+            # No Description to reduce file sizes
+            #line = '{};{};{};{};{}\n'.format(product['Title'],
+            #                                    product['Category'], product['Breadcrumb'],
+            #                                    product['BreadcrumbList'],
+            #                                    product['Breadcrumb-Predicate'])
             out_f.write(line)
 
 
