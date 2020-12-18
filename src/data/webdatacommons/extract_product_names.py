@@ -46,6 +46,9 @@ def main(file_path, output_path):
                             node_relevant = False
                         if node_relevant:
                             logger.info(r)
+                        if print_next_values > 0:
+                            print_next_values -= 1
+                            logger.info(r)
 
                         if r[3] != uri:
                             uri = r[3]
@@ -92,6 +95,7 @@ def main(file_path, output_path):
                                 node = r[2]
                                 node_relevant = True
                                 logger.info(r)
+                                print_next_values = 5
                             else:
                                 prep_value = preprocess_value(r[2])
                                 if len(prep_value) > 0 and prep_value != 'null':
