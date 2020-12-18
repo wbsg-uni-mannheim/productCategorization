@@ -45,11 +45,8 @@ def main(file_path, output_path):
 
                         if r[0] != node:
                             node_relevant = False
-                        #if node_relevant:
-                        #    logger.info(r)
-                        #if print_next_values > 0:
-                        #    print_next_values -= 1
-                        #    logger.info(r)
+                        if node_relevant:
+                            logger.info(r)
 
                         if r[3] != uri:
                             uri = r[3]
@@ -75,13 +72,6 @@ def main(file_path, output_path):
                                     for value in breadcrumbLists:
                                         logger.info('Breadcrumblists value: {}'.format(value))
 
-                        #if r[0] == '_:nodefe8e433a782f383d89dc215c26b12724' \
-                        #        or r[2] == '_:nodefe8e433a782f383d89dc215c26b12724':
-                        #    logger.info(r)
-
-                        if 'http://store.ergobaby.com/accessories' in r[3]:
-                            logger.info(r)
-
                         if r[1] == '<http://schema.org/Product/name>' and '@en' in r[2]:
                             prep_value = preprocess_value(r[2])
                             if len(prep_value) > 0 and prep_value != 'null':
@@ -97,16 +87,6 @@ def main(file_path, output_path):
                             node_relevant = True
                             #logger.info(r)
 
-                        if r[1] == '<http://schema.org/Product/breadcrumb>':
-                            if '_:node' in r[2]:
-                                node = r[2]
-                                node_relevant = True
-                                #logger.info(r)
-                                print_next_values = 5
-                            else:
-                                prep_value = preprocess_value(r[2])
-                                if len(prep_value) > 0 and prep_value != 'null':
-                                    product['Breadcrumb'] = prep_value
 
                         if 'category' in r[1].lower():
                             prep_value = preprocess_value(r[2])
@@ -114,7 +94,17 @@ def main(file_path, output_path):
                                 product['Category'] = '{} {}'.format(product['Category'], prep_value).lstrip()
                                 categories.add(r[1])
 
-                        if 'breadcrumblist' in r[1].lower():
+                        if r[1] == '<http://schema.org/Product/breadcrumb>':
+                            if '_:node' in r[2]:
+                                node = r[2]
+                                node_relevant = True
+                                #logger.info(r)
+                            else:
+                                prep_value = preprocess_value(r[2])
+                                if len(prep_value) > 0 and prep_value != 'null':
+                                    product['Breadcrumb'] = prep_value
+
+                        elif 'breadcrumblist' in r[1].lower():
                             prep_value = preprocess_value(r[2])
                             if len(prep_value) > 0 and prep_value != 'null':
                                 product['BreadcrumbList'] = '{} {}'.format(product['BreadcrumbList'],
