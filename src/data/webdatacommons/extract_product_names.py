@@ -91,8 +91,9 @@ def main(file_path, output_path):
                         if 'category' in r[1].lower():
                             prep_value = preprocess_value(r[2])
                             if len(prep_value) > 0 and prep_value != 'null':
-                                product['Category'] = '{} {}'.format(product['Category'], prep_value).lstrip()
-                                categories.add(r[1])
+                                if prep_value not in product['Category']:
+                                    product['Category'] = '{} {}'.format(product['Category'], prep_value).lstrip()
+                                    categories.add(r[1])
 
                         if r[1] == '<http://schema.org/Product/breadcrumb>':
                             if '_:node' in r[2]:
@@ -102,7 +103,11 @@ def main(file_path, output_path):
                             else:
                                 prep_value = preprocess_value(r[2])
                                 if len(prep_value) > 0 and prep_value != 'null':
-                                    product['Breadcrumb'] = prep_value
+                                    if prep_value not in product['Breadcrumb']:
+                                        product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
+                                        product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'],
+                                                                                     r[1]).lstrip()
+                                        breadcrumbs.add(r[1])
 
                         elif 'breadcrumblist' in r[1].lower():
                             if '_:node' in r[2]:
@@ -125,10 +130,10 @@ def main(file_path, output_path):
                                 else:
                                     prep_value = preprocess_value(r[2])
                                     if len(prep_value) > 0 and prep_value != 'null':
-                                        product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
-                                        product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'],
-                                                                                 r[1]).lstrip()
-                                        breadcrumbs.add(r[1])
+                                        if prep_value not in product['Breadcrumb']:
+                                            product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
+                                            product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'], r[1]).lstrip()
+                                            breadcrumbs.add(r[1])
 
             except csv.Error as e:
                 print(e)
