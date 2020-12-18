@@ -182,7 +182,7 @@ def write_to_disk(products, path):
 
 def preprocess_value(value):
     value = value.split('@')[0]
-    value = value.replace('\\n', '').replace('\\t', '').replace('\\u00a0', '')
+    value = value.replace('\\n', '').replace('\\t', '').replace('u00a0', '').replace('u00bb', '')
     prep_value = preprocess(value)
     return prep_value
 
