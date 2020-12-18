@@ -29,6 +29,7 @@ def main(file_path, output_path):
     node = ''
     node_relevant = False
     p = None  # Process for Multithreading
+    print_next_values = 0
 
     # Initialize output file
     open(output_path, 'w').close()
@@ -37,7 +38,7 @@ def main(file_path, output_path):
     with gzip.open(file_path, 'rt', encoding='utf-8') as f:
 
         for i, line in enumerate(f):
-            reader = csv.reader([line], delimiter= ' ', quotechar='"')
+            reader = csv.reader([line], delimiter=' ', quotechar='"')
             try:
                 for r in reader:
                     if len(r) > 4:
@@ -52,14 +53,13 @@ def main(file_path, output_path):
 
                         if r[3] != uri:
                             uri = r[3]
-                            if len(product['Title']) > 0 and \
-                                (len(product['Category']) > 0 \
-                                or len(product['Breadcrumb']) > 0 \
-                                or len(product['BreadcrumbList']) > 0):
+                            if len(product['Title']) > 0 and (len(product['Category']) > 0 or
+                                                              len(product['Breadcrumb']) > 0 or
+                                                              len(product['BreadcrumbList']) > 0):
 
                                 collected_products.append(copy.deepcopy(product))
                                 # Initialize product dict
-                                product = {key: '' for key in product }
+                                product = {key: '' for key in product}
                                 counter += 1
 
                                 if counter % 10000 == 0:
@@ -110,14 +110,16 @@ def main(file_path, output_path):
                         if 'breadcrumblist' in r[1].lower():
                             prep_value = preprocess_value(r[2])
                             if len(prep_value) > 0 and prep_value != 'null':
-                                product['BreadcrumbList'] = '{} {}'.format(product['BreadcrumbList'], prep_value).lstrip()
+                                product['BreadcrumbList'] = '{} {}'.format(product['BreadcrumbList'],
+                                                                           prep_value).lstrip()
                                 breadcrumbLists.add(r[1])
 
                         elif 'breadcrumb' in r[1].lower():
                             prep_value = preprocess_value(r[2])
                             if len(prep_value) > 0 and prep_value != 'null':
                                 product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
-                                product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'], r[1]).lstrip()
+                                product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'],
+                                                                                 r[1]).lstrip()
                                 breadcrumbs.add(r[1])
 
             except csv.Error as e:
@@ -136,9 +138,10 @@ def main(file_path, output_path):
     for value in breadcrumbLists:
         logger.info('Breadcrumblists value: {}'.format(value))
 
+
 def parallel_write(p, products, path):
     logger = logging.getLogger(__name__)
-    if p != None:
+    if p is not None:
         start = time.time()
         p.join()
         end = time.time()
@@ -159,12 +162,12 @@ def write_to_disk(products, path):
             out_f.write(line)
 
 
-
 def preprocess_value(value):
     value = value.split('@')[0]
     value = value.replace('\\n', '').replace('\\t', '').replace("\xc2\xa0", " ")
     prep_value = preprocess(value)
     return prep_value
+
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
