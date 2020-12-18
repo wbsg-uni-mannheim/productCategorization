@@ -17,11 +17,12 @@ def main(file_path, output_path):
     breadcrumbs = set()
     breadcrumbLists = set()
 
-    with gzip.open(file_path, 'rt', encoding='utf-8') as f:
+    with open(file_path, 'rt', encoding='utf-8') as f:
         with open(output_path, 'w', encoding='utf-8') as out_f:
             counter = 0
             product = {'Title': 'Title', 'Description': 'Description', 'Category': 'Category',
-                       'Breadcrumb': 'Breadcrumb', 'BreadcrumbList': 'BreadcrumbList'}
+                       'Breadcrumb': 'Breadcrumb', 'BreadcrumbList': 'BreadcrumbList',
+                       'Breadcrumb-Predicate': 'Breadcrumb-Predicate'}
             uri = 'initial'
             for i, line in enumerate(f):
                 reader = csv.reader([line], delimiter= ' ', quotechar='"')
@@ -35,9 +36,10 @@ def main(file_path, output_path):
                                     or len(product['Breadcrumb']) > 0 \
                                     or len(product['BreadcrumbList']) > 0):
 
-                                    line = '{};{};{};{};{}\n'.format(product['Title'], product['Description'],
+                                    line = '{};{};{};{};{};{}\n'.format(product['Title'], product['Description'],
                                                               product['Category'], product['Breadcrumb'],
-                                                              product['BreadcrumbList'])
+                                                              product['BreadcrumbList'],
+                                                              product['Breadcrumb-Predicate'])
                                     out_f.write(line)
                                     # Initialize product dict
                                     product = {key: '' for key in product }
@@ -71,19 +73,20 @@ def main(file_path, output_path):
                             if 'category' in r[1].lower():
                                 prep_value = preprocess_value(r[2])
                                 if len(prep_value) > 0 and prep_value != 'null':
-                                    product['Category'] = prep_value
+                                    product['Category'] = '{} {}'.format(product['Category'], prep_value).lstrip()
                                     categories.add(r[1])
 
                             if 'breadcrumblist' in r[1].lower():
                                 prep_value = preprocess_value(r[2])
                                 if len(prep_value) > 0 and prep_value != 'null':
-                                    product['BreadcrumbList'] = prep_value
+                                    product['BreadcrumbList'] = '{} {}'.format(product['BreadcrumbList'], prep_value).lstrip()
                                     breadcrumbLists.add(r[1])
 
                             elif 'breadcrumb' in r[1].lower():
                                 prep_value = preprocess_value(r[2])
                                 if len(prep_value) > 0 and prep_value != 'null':
-                                    product['Breadcrumb'] = prep_value
+                                    product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
+                                    product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'], r[1]).lstrip()
                                     breadcrumbs.add(r[1])
 
                 except csv.Error as e:
