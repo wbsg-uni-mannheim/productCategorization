@@ -75,8 +75,11 @@ def main(file_path, output_path):
                                     for value in breadcrumbLists:
                                         logger.info('Breadcrumblists value: {}'.format(value))
 
-                        if r[0] == '_:nodefe8e433a782f383d89dc215c26b12724' \
-                                or r[2] == '_:nodefe8e433a782f383d89dc215c26b12724':
+                        #if r[0] == '_:nodefe8e433a782f383d89dc215c26b12724' \
+                        #        or r[2] == '_:nodefe8e433a782f383d89dc215c26b12724':
+                        #    logger.info(r)
+
+                        if 'http://store.ergobaby.com/accessories' in r[4]:
                             logger.info(r)
 
                         if r[1] == '<http://schema.org/Product/name>' and '@en' in r[2]:
