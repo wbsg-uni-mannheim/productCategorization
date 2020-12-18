@@ -61,6 +61,7 @@ def main(file_path, output_path):
 
                                 if counter % 10000 == 0:
                                     p = parallel_write(p, collected_products, output_path)
+                                    collected_products = []
                                     logger.info('Written {} product names to disc.'.format(counter))
 
                                     for value in categories:
@@ -77,25 +78,24 @@ def main(file_path, output_path):
                             if len(prep_value) > 0 and prep_value != 'null':
                                 product['Title'] = prep_value
 
-                        if r[1] == '<http://schema.org/Product/description>':
+                        elif r[1] == '<http://schema.org/Product/description>':
                             prep_value = preprocess_value(r[2])
                             if len(prep_value) > 0 and prep_value != 'null':
                                 product['Description'] = prep_value
 
-                        if 'breadcrumblist' in r[2].lower():
+                        elif 'breadcrumblist' in r[2].lower():
                             node = r[0]
                             node_relevant = True
                             #logger.info(r)
 
-
-                        if 'category' in r[1].lower():
+                        elif 'category' in r[1].lower():
                             prep_value = preprocess_value(r[2])
                             if len(prep_value) > 0 and prep_value != 'null':
                                 if prep_value not in product['Category']:
                                     product['Category'] = '{} {}'.format(product['Category'], prep_value).lstrip()
                                     categories.add(r[1])
 
-                        if r[1] == '<http://schema.org/Product/breadcrumb>':
+                        elif r[1] == '<http://schema.org/Product/breadcrumb>':
                             if '_:node' in r[2]:
                                 node = r[2]
                                 node_relevant = True
