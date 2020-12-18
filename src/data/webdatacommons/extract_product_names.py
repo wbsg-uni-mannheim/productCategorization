@@ -78,8 +78,7 @@ def main(file_path, output_path):
                                 if len(prep_value) > 0 and prep_value != 'null':
                                     product['Description'] = prep_value
 
-                            if r[1] == '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>' \
-                                    and 'breadcrumblist' in r[2].lower():
+                            if 'breadcrumblist' in r[2].lower():
                                 node = r[0]
                                 node_relevant = True
                                 logger.info(r)
