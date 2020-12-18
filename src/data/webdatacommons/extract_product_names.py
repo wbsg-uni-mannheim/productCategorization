@@ -24,11 +24,19 @@ def main(file_path, output_path):
                        'Breadcrumb': 'Breadcrumb', 'BreadcrumbList': 'BreadcrumbList',
                        'Breadcrumb-Predicate': 'Breadcrumb-Predicate'}
             uri = 'initial'
+            node = ''
+            node_relevant = False
             for i, line in enumerate(f):
                 reader = csv.reader([line], delimiter= ' ', quotechar='"')
                 try:
                     for r in reader:
                         if len(r) > 4:
+
+                            if r[0] != node:
+                                node_relevant = False
+                            if node_relevant:
+                                logger.info(r)
+
                             if r[3] != uri:
                                 uri = r[3]
                                 if len(product['Title']) > 0 and \
@@ -69,6 +77,12 @@ def main(file_path, output_path):
                                 prep_value = preprocess_value(r[2])
                                 if len(prep_value) > 0 and prep_value != 'null':
                                     product['Description'] = prep_value
+
+                            if r[1] == '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>' \
+                                    and 'breadcrumblist' in r[2].lower():
+                                node = r[0]
+                                node_relevant = True
+                                logger.info(r)
 
                             if 'category' in r[1].lower():
                                 prep_value = preprocess_value(r[2])
