@@ -68,19 +68,19 @@ def main(file_path, output_path):
                                 if len(prep_value) > 0 and prep_value != 'null':
                                     product['Description'] = prep_value
 
-                            if 'category' in r[1]:
+                            if 'category' in r[1].lower():
                                 prep_value = preprocess_value(r[2])
                                 if len(prep_value) > 0 and prep_value != 'null':
                                     product['Category'] = prep_value
                                     categories.add(r[1])
 
-                            if 'breadcrumblist' in r[1]:
+                            if 'breadcrumblist' in r[1].lower():
                                 prep_value = preprocess_value(r[2])
                                 if len(prep_value) > 0 and prep_value != 'null':
                                     product['BreadcrumbList'] = prep_value
                                     breadcrumbLists.add(r[1])
 
-                            elif 'breadcrumb' in r[1]:
+                            elif 'breadcrumb' in r[1].lower():
                                 prep_value = preprocess_value(r[2])
                                 if len(prep_value) > 0 and prep_value != 'null':
                                     product['Breadcrumb'] = prep_value
