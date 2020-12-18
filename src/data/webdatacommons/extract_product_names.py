@@ -46,10 +46,10 @@ def main(file_path, output_path):
                         if r[0] != node:
                             node_relevant = False
                         #if node_relevant:
-                            #logger.info(r)
+                        #    logger.info(r)
                         if print_next_values > 0:
                             print_next_values -= 1
-                            #logger.info(r)
+                            logger.info(r)
 
                         if r[3] != uri:
                             uri = r[3]
@@ -75,7 +75,8 @@ def main(file_path, output_path):
                                     for value in breadcrumbLists:
                                         logger.info('Breadcrumblists value: {}'.format(value))
 
-                        if r[0] == '_:nodefe8e433a782f383d89dc215c26b12724':
+                        if r[0] == '_:nodefe8e433a782f383d89dc215c26b12724' \
+                                or r[2] == '_:nodefe8e433a782f383d89dc215c26b12724':
                             logger.info(r)
 
                         if r[1] == '<http://schema.org/Product/name>' and '@en' in r[2]:
