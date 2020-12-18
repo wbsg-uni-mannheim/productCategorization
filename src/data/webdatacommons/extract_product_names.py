@@ -97,7 +97,7 @@ def main(file_path, output_path):
                             if '_:node' in r[2]:
                                 node = r[2]
                                 node_relevant = True
-                                logger.info(r)
+                                #logger.info(r)
                                 print_next_values = 5
                             else:
                                 prep_value = preprocess_value(r[2])
