@@ -15,9 +15,9 @@ def main(file_path, output_path):
 
     categories = set()
     breadcrumbs = set()
-    breadcrumblists = set()
+    breadcrumbLists = set()
 
-    with gzip.open(file_path, 'rt', encoding='utf-8') as f:
+    with open(file_path, 'rt', encoding='utf-8') as f:
         with open(output_path, 'w', encoding='utf-8') as out_f:
             counter = 0
             product = {'Title': 'Title', 'Description': 'Description', 'Category': 'Category',
@@ -43,32 +43,53 @@ def main(file_path, output_path):
                                     product = {key: '' for key in product }
                                     counter += 1
 
-                                    if counter % 100 == 0:
+                                    if counter % 10000 == 0:
                                         logger.info('Written {} product names to disc.'.format(counter))
 
-                                    if counter == 100000:
+                                        for value in categories:
+                                            logger.info('Category value: {}'.format(value))
+
+                                        for value in breadcrumbs:
+                                            logger.info('Breadcrumbs value: {}'.format(value))
+
+                                        for value in breadcrumbLists:
+                                            logger.info('Breadcrumblists value: {}'.format(value))
+
+                                    if counter == 10000:
                                         break
 
                             if r[1] == '<http://schema.org/Product/name>' and '@en' in r[2]:
-                                product['Title'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
+                                prep_value = preprocess_value(r[2])
+                                if len(prep_value) > 0 and prep_value != 'null':
+                                    product['Title'] = prep_value
 
                             if r[1] == '<http://schema.org/Product/description>':
-                                product['Description'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
+                                prep_value = preprocess_value(r[2])
+                                if len(prep_value) > 0 and prep_value != 'null':
+                                    product['Description'] = prep_value
 
                             if 'category' in r[1]:
-                                categories.add(r[1])
-                                product['Category'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
-
-                            if 'breadcrumb' in r[1]:
-                                breadcrumbs.add(r[1])
-                                product['Breadcrumb'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
+                                prep_value = preprocess_value(r[2])
+                                if len(prep_value) > 0 and prep_value != 'null':
+                                    product['Category'] = prep_value
+                                    categories.add(r[1])
 
                             if 'breadcrumblist' in r[1]:
-                                breadcrumblists.add(r[1])
-                                product['BreadcrumbList'] = preprocess(r[2].split('@')[0].replace('\\n', ''))
+                                prep_value = preprocess_value(r[2])
+                                if len(prep_value) > 0 and prep_value != 'null':
+                                    product['BreadcrumbList'] = prep_value
+                                    breadcrumbLists.add(r[1])
+
+                            elif 'breadcrumb' in r[1]:
+                                prep_value = preprocess_value(r[2])
+                                if len(prep_value) > 0 and prep_value != 'null':
+                                    product['Breadcrumb'] = prep_value
+                                    breadcrumbs.add(r[1])
 
                 except csv.Error as e:
                     print(e)
+
+    logger.info('Written {} product names to disc.'.format(counter))
 
     for value in categories:
         logger.info('Category value: {}'.format(value))
@@ -76,10 +97,12 @@ def main(file_path, output_path):
     for value in breadcrumbs:
         logger.info('Breadcrumbs value: {}'.format(value))
 
-    for value in breadcrumblists:
+    for value in breadcrumbLists:
         logger.info('Breadcrumblists value: {}'.format(value))
 
-    logger.info('Written {} product names to disc.'.format(counter))
+def preprocess_value(value):
+    prep_value = preprocess(value.split('@')[0].replace('\\n', ''))
+    return prep_value
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
