@@ -12,8 +12,9 @@ from src.data.preprocessing import preprocess
 
 @click.command()
 @click.option('--file_path', help='Path to file containing products')
-@click.option('--output_path', help='Path to file containing products')
-def main(file_path, output_path):
+@click.option('--output_path', help='Path to output_fiel')
+@click.option('--host_path', help='Path to file containing hosts')
+def main(file_path, output_path, host_path):
     logger = logging.getLogger(__name__)
 
     categories = set()
@@ -31,11 +32,14 @@ def main(file_path, output_path):
     p = None  # Process for Multithreading
     print_next_values = 0
 
+    #Load searched hosts
+    hosts = load_hosts(host_path)
+
     # Initialize output file
     open(output_path, 'w').close()
     logger.info('Inialize output file {}!'.format(output_path))
 
-    with gzip.open(file_path, 'rt', encoding='utf-8') as f:
+    with open(file_path, 'rt', encoding='utf-8') as f:
 
         for i, line in enumerate(f):
             reader = csv.reader([line], delimiter=' ', quotechar='"')
@@ -73,62 +77,70 @@ def main(file_path, output_path):
                                     for value in breadcrumbLists:
                                         logger.info('Breadcrumblists value: {}'.format(value))
 
-                        if r[1] == '<http://schema.org/Product/name>' and '@en' in r[2]:
-                            prep_value = preprocess_value(r[2])
-                            if len(prep_value) > 0 and prep_value != 'null':
-                                product['Title'] = prep_value
+                        # Check if we look for the given host
+                        searched_host = False
+                        for host in hosts:
+                            if host in r[3]:
+                                searched_host = True
+                                break
 
-                        elif r[1] == '<http://schema.org/Product/description>':
-                            prep_value = preprocess_value(r[2])
-                            if len(prep_value) > 0 and prep_value != 'null':
-                                product['Description'] = prep_value
+                        if searched_host:
+                            if r[1] == '<http://schema.org/Product/name>' and '@en' in r[2]:
+                                prep_value = preprocess_value(r[2])
+                                if len(prep_value) > 0 and prep_value != 'null':
+                                    product['Title'] = prep_value
 
-                        elif 'breadcrumblist' in r[2].lower():
-                            node = r[0]
-                            node_relevant = True
+                            elif r[1] == '<http://schema.org/Product/description>':
+                                prep_value = preprocess_value(r[2])
+                                if len(prep_value) > 0 and prep_value != 'null':
+                                    product['Description'] = prep_value
+
+                        #elif 'breadcrumblist' in r[2].lower():
+                        #    node = r[0]
+                        #    node_relevant = True
                             #logger.info(r)
 
-                        elif 'category' in r[1].lower():
-                            prep_value = preprocess_value(r[2])
-                            if len(prep_value) > 0 and prep_value != 'null':
-                                if prep_value not in product['Category']:
-                                    product['Category'] = '{} {}'.format(product['Category'], prep_value).lstrip()
-                                    categories.add(r[1])
-
-                        elif r[1] == '<http://schema.org/Product/breadcrumb>':
-                            if '_:node' in r[2]:
-                                node = r[2]
-                                node_relevant = True
-                                #logger.info(r)
-                            else:
+                            elif 'category' in r[1].lower():
                                 prep_value = preprocess_value(r[2])
                                 if len(prep_value) > 0 and prep_value != 'null':
-                                    if prep_value not in product['Breadcrumb']:
-                                        product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
-                                        product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'],
+                                    if prep_value not in product['Category']:
+                                        product['Category'] = '{} {}'.format(product['Category'], prep_value).lstrip()
+                                        categories.add(r[1])
+
+                            elif r[1] == '<http://schema.org/Product/breadcrumb>':
+                                if '_:node' in r[2]:
+                                    node = r[2]
+                                    node_relevant = True
+                                    #logger.info(r)
+                                else:
+                                    prep_value = preprocess_value(r[2])
+                                    if len(prep_value) > 0 and prep_value != 'null':
+                                        if prep_value not in product['Breadcrumb']:
+                                            product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
+                                            product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'],
                                                                                      r[1]).lstrip()
-                                        breadcrumbs.add(r[1])
+                                            breadcrumbs.add(r[1])
 
-                        elif 'breadcrumblist' in r[1].lower():
-                            if '_:node' in r[2]:
-                                node = r[2]
-                                node_relevant = True
+                            elif 'breadcrumblist' in r[1].lower():
+                                if '_:node' in r[2]:
+                                    node = r[2]
+                                    node_relevant = True
                                 #logger.info(r)
-                            else:
-                                prep_value = preprocess_value(r[2])
-                                if len(prep_value) > 0 and prep_value != 'null':
-                                    product['BreadcrumbList'] = '{} {}'.format(product['BreadcrumbList'],
+                                else:
+                                    prep_value = preprocess_value(r[2])
+                                    if len(prep_value) > 0 and prep_value != 'null':
+                                        product['BreadcrumbList'] = '{} {}'.format(product['BreadcrumbList'],
                                                                            prep_value).lstrip()
-                                    breadcrumbLists.add(r[1])
+                                        breadcrumbLists.add(r[1])
 
-                        elif 'breadcrumb' in r[1].lower():
-                            if r[1] != '<http://schema.org/Breadcrumb/url>' and r[1] != '<http://schema.org/Breadcrumb/child>':
-                                prep_value = preprocess_value(r[2])
-                                if len(prep_value) > 0 and prep_value != 'null':
-                                    if prep_value not in product['Breadcrumb']:
-                                        product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
-                                        product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'], r[1]).lstrip()
-                                        breadcrumbs.add(r[1])
+                            elif 'breadcrumb' in r[1].lower():
+                                if r[1] != '<http://schema.org/Breadcrumb/url>' and r[1] != '<http://schema.org/Breadcrumb/child>':
+                                    prep_value = preprocess_value(r[2])
+                                    if len(prep_value) > 0 and prep_value != 'null':
+                                        if prep_value not in product['Breadcrumb']:
+                                            product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
+                                            product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'], r[1]).lstrip()
+                                            breadcrumbs.add(r[1])
 
             except csv.Error as e:
                 print(e)
@@ -145,6 +157,19 @@ def main(file_path, output_path):
 
     for value in breadcrumbLists:
         logger.info('Breadcrumblists value: {}'.format(value))
+
+def load_hosts(host_path):
+    logger = logging.getLogger(__name__)
+    hosts = []
+    counter = 0
+    with open(host_path, 'r') as host_file:
+        lines = host_file.readlines()
+        for line in lines:
+            hosts.append(line.strip())
+            counter += 1
+
+    logger.info('Loaded {} hosts!'.format(counter))
+    return hosts
 
 
 def parallel_write(p, products, path):
