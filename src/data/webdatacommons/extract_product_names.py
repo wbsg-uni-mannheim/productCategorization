@@ -56,6 +56,7 @@ def main(file_path, output_path, host_path):
                             uri = r[3]
                             if len(product['Title']) > 0 and (len(product['Category']) > 0 or
                                                               len(product['Breadcrumb']) > 0 or
+                                                              len(product['Description']) > 0 or # Relax constraints
                                                               len(product['BreadcrumbList']) > 0):
 
                                 collected_products.append(copy.deepcopy(product))
