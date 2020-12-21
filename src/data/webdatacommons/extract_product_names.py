@@ -39,7 +39,7 @@ def main(file_path, output_path, host_path):
     open(output_path, 'w').close()
     logger.info('Inialize output file {}!'.format(output_path))
 
-    with open(file_path, 'rt', encoding='utf-8') as f:
+    with gzip.open(file_path, 'rt', encoding='utf-8') as f:
 
         for i, line in enumerate(f):
             reader = csv.reader([line], delimiter=' ', quotechar='"')
