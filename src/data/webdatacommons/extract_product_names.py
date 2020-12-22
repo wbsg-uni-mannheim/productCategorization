@@ -15,7 +15,7 @@ from src.data.preprocessing import preprocess
 @click.option('--file_dir', help='Path to dir containing files with products')
 @click.option('--output_dir', help='Path to output_dir')
 @click.option('--host_path', help='Path to file containing hosts')
-@click.option('--worker', help='Number of workers')
+@click.option('--worker', help='Number of workers', type=int)
 def main(file_dir, output_dir, host_path, worker):
     logger = logging.getLogger(__name__)
     # Load searched hosts
