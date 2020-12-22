@@ -15,11 +15,12 @@ from src.data.preprocessing import preprocess
 @click.option('--file_dir', help='Path to dir containing files with products')
 @click.option('--output_dir', help='Path to output_dir')
 @click.option('--host_path', help='Path to file containing hosts')
-def main(file_dir, output_dir, host_path):
+@click.option('--worker', help='Number of workers')
+def main(file_dir, output_dir, host_path, worker):
     logger = logging.getLogger(__name__)
     # Load searched hosts
     hosts = load_hosts(host_path)
-    sema = Semaphore(1)
+    sema = Semaphore(worker)
     processed_products = Value('i', 0)
     all_processes = []
     counter = 1
