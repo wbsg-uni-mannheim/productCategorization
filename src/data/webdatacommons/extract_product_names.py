@@ -27,8 +27,8 @@ def main(file_dir, output_dir, host_path, worker):
 
     for file in listdir(file_dir):
         if '.gz' in file:
-            input_file = '{}{}'.format(file_dir, file)
-            output_file = '{}{}.txt'.format(output_dir, file.split('.')[-2])
+            input_file = '{}/{}'.format(file_dir, file)
+            output_file = '{}/{}.txt'.format(output_dir, file.split('.')[-2])
 
             sema.acquire()
             process = Process(target=extract_products, args=(input_file, output_file, hosts, sema, processed_products,))
