@@ -2,8 +2,9 @@ import csv
 import gzip
 import logging
 import copy
-from multiprocessing import Process
+from multiprocessing import Process, Semaphore, Value
 import time
+from os import listdir
 
 import click
 
@@ -11,10 +12,40 @@ from src.data.preprocessing import preprocess
 
 
 @click.command()
-@click.option('--file_path', help='Path to file containing products')
-@click.option('--output_path', help='Path to output_fiel')
+@click.option('--file_dir', help='Path to dir containing files with products')
+@click.option('--output_dir', help='Path to output_dir')
 @click.option('--host_path', help='Path to file containing hosts')
-def main(file_path, output_path, host_path):
+def main(file_dir, output_dir, host_path):
+    logger = logging.getLogger(__name__)
+    # Load searched hosts
+    hosts = load_hosts(host_path)
+    sema = Semaphore(1)
+    processed_products = Value('i', 0)
+    all_processes = []
+    counter = 1
+
+    for file in listdir(file_dir):
+        if '.gz' in file:
+            input_file = '{}{}'.format(file_dir, file)
+            output_file = '{}{}.txt'.format(output_dir, file.split('.')[-2])
+
+            sema.acquire()
+            process = Process(target=extract_products, args=(input_file, output_file, hosts, sema, processed_products,))
+            all_processes.append(process)
+            process.start()
+            logger.info('Started {} processes!'.format(counter))
+            logger.info('Processed {} products!'.format(processed_products.value))
+            counter += 1
+
+    logger.info('Wait for all processes to finish!')
+    for p in all_processes:
+        p.join()
+        logger.info('Processed {} products!'.format(processed_products.value))
+
+
+
+def extract_products(file_path, output_path, hosts, sema, processed_products):
+    logging.basicConfig(filename='myapp.log', level=logging.INFO)
     logger = logging.getLogger(__name__)
 
     categories = set()
@@ -27,13 +58,7 @@ def main(file_path, output_path, host_path):
                'Breadcrumb': 'Breadcrumb', 'BreadcrumbList': 'BreadcrumbList',
                'Breadcrumb-Predicate': 'Breadcrumb-Predicate'}
     uri = 'initial'
-    node = ''
-    node_relevant = False
     p = None  # Process for Multithreading
-    print_next_values = 0
-
-    #Load searched hosts
-    hosts = load_hosts(host_path)
 
     # Initialize output file
     open(output_path, 'w').close()
@@ -47,16 +72,11 @@ def main(file_path, output_path, host_path):
                 for r in reader:
                     if len(r) > 4:
 
-                        #if r[0] != node:
-                        #    node_relevant = False
-                        #if node_relevant:
-                        #    logger.info(r)
-
                         if r[3] != uri:
                             uri = r[3]
                             if len(product['Title']) > 0 and (len(product['Category']) > 0 or
                                                               len(product['Breadcrumb']) > 0 or
-                                                              len(product['Description']) > 0 or # Relax constraints
+                                                              len(product['Description']) > 0 or  # Relax constraints
                                                               len(product['BreadcrumbList']) > 0):
 
                                 collected_products.append(copy.deepcopy(product))
@@ -96,10 +116,10 @@ def main(file_path, output_path, host_path):
                                 if len(prep_value) > 0 and prep_value != 'null':
                                     product['Description'] = prep_value
 
-                        #elif 'breadcrumblist' in r[2].lower():
-                        #    node = r[0]
-                        #    node_relevant = True
-                            #logger.info(r)
+                            # elif 'breadcrumblist' in r[2].lower():
+                            #    node = r[0]
+                            #    node_relevant = True
+                            # logger.info(r)
 
                             elif 'category' in r[1].lower():
                                 prep_value = preprocess_value(r[2])
@@ -110,37 +130,41 @@ def main(file_path, output_path, host_path):
 
                             elif r[1] == '<http://schema.org/Product/breadcrumb>':
                                 if '_:node' in r[2]:
-                                    node = r[2]
-                                    node_relevant = True
-                                    #logger.info(r)
+                                    pass
+                                    # logger.info(r)
                                 else:
                                     prep_value = preprocess_value(r[2])
                                     if len(prep_value) > 0 and prep_value != 'null':
                                         if prep_value not in product['Breadcrumb']:
-                                            product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
-                                            product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'],
-                                                                                     r[1]).lstrip()
+                                            product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'],
+                                                                                   prep_value).lstrip()
+                                            product['Breadcrumb-Predicate'] = '{} {}'.format(
+                                                product['Breadcrumb-Predicate'],
+                                                r[1]).lstrip()
                                             breadcrumbs.add(r[1])
 
                             elif 'breadcrumblist' in r[1].lower():
                                 if '_:node' in r[2]:
                                     node = r[2]
                                     node_relevant = True
-                                #logger.info(r)
+                                # logger.info(r)
                                 else:
                                     prep_value = preprocess_value(r[2])
                                     if len(prep_value) > 0 and prep_value != 'null':
                                         product['BreadcrumbList'] = '{} {}'.format(product['BreadcrumbList'],
-                                                                           prep_value).lstrip()
+                                                                                   prep_value).lstrip()
                                         breadcrumbLists.add(r[1])
 
                             elif 'breadcrumb' in r[1].lower():
-                                if r[1] != '<http://schema.org/Breadcrumb/url>' and r[1] != '<http://schema.org/Breadcrumb/child>':
+                                if r[1] != '<http://schema.org/Breadcrumb/url>' and r[
+                                    1] != '<http://schema.org/Breadcrumb/child>':
                                     prep_value = preprocess_value(r[2])
                                     if len(prep_value) > 0 and prep_value != 'null':
                                         if prep_value not in product['Breadcrumb']:
-                                            product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'], prep_value).lstrip()
-                                            product['Breadcrumb-Predicate'] = '{} {}'.format(product['Breadcrumb-Predicate'], r[1]).lstrip()
+                                            product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'],
+                                                                                   prep_value).lstrip()
+                                            product['Breadcrumb-Predicate'] = '{} {}'.format(
+                                                product['Breadcrumb-Predicate'], r[1]).lstrip()
                                             breadcrumbs.add(r[1])
 
             except csv.Error as e:
@@ -158,6 +182,14 @@ def main(file_path, output_path, host_path):
 
     for value in breadcrumbLists:
         logger.info('Breadcrumblists value: {}'.format(value))
+
+    # Share info about processed products -1: Don't count header row
+    processed_products.value = processed_products.value + counter -1
+    # Release Sema so that new processes can start!
+    sema.release()
+
+
+
 
 def load_hosts(host_path):
     logger = logging.getLogger(__name__)
@@ -189,17 +221,10 @@ def parallel_write(p, products, path):
 def write_to_disk(products, path):
     with open(path, 'a') as out_f:
         for product in products:
-
             line = '{};{};{};{};{};{}\n'.format(product['Title'], product['Description'],
                                                 product['Category'], product['Breadcrumb'],
                                                 product['BreadcrumbList'],
                                                 product['Breadcrumb-Predicate'])
-
-            # No Description to reduce file sizes
-            #line = '{};{};{};{};{}\n'.format(product['Title'],
-            #                                    product['Category'], product['Breadcrumb'],
-            #                                    product['BreadcrumbList'],
-            #                                    product['Breadcrumb-Predicate'])
             out_f.write(line)
 
 
