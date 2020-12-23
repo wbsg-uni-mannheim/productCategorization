@@ -2,6 +2,7 @@ import logging
 from os import listdir
 import click
 import pandas as pd
+from tqdm import tqdm
 
 @click.command()
 @click.option('--file_dir', help='Path to dir containing files with products')
@@ -13,7 +14,7 @@ def main(file_dir, output_file):
 
     df_products = pd.DataFrame()
 
-    for file in listdir(file_dir):
+    for file in tqdm(listdir(file_dir)):
         if '.txt' in file:
             file_path = '{}/{}'.format(file_dir, file)
             try:
@@ -23,7 +24,7 @@ def main(file_dir, output_file):
                 # Drop duplicates from complete df
                 df_products = df_products.append(df_new_products, ignore_index=True)
                 df_products = drop_duplicates(df_products)
-                
+
             except pd.errors.EmptyDataError:
                 logger.info('File {} is empty'.format(file_path))
 
