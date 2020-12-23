@@ -15,7 +15,7 @@ def main(file_dir, output_file):
 
     for file in listdir(file_dir):
         if '.txt' in file:
-            file_path = '{}\{}'.format(file_dir, file)
+            file_path = '{}/{}'.format(file_dir, file)
             df_new_products = pd.read_csv(filepath_or_buffer=file_path, sep=';')
             df_new_products = drop_duplicates(df_new_products)
 
