@@ -6,6 +6,7 @@ from multiprocessing import Process, Semaphore, Value
 import time
 from os import listdir
 from pathlib import Path
+import re
 
 import click
 
@@ -27,7 +28,7 @@ def main(file_dir, output_dir, host_path, worker):
     counter = 1
 
     for file in listdir(file_dir):
-        if '.gz' in file:
+        if '.txt' in file:
             input_file = '{}/{}'.format(file_dir, file)
             output_file = '{}/{}.txt'.format(output_dir, file.split('.')[-2])
 
@@ -41,15 +42,20 @@ def main(file_dir, output_dir, host_path, worker):
 
             # Join finished processes
             for p in all_processes:
-                if p.exitcode == 0:
-                    p.join()
-                    logger.info('Processed {} products!'.format(processed_products.value))
+                if p.exitcode != None:
+                    if p.exitcode == 0 or p.exitcode < 0:
+                        p.join()
+                        p.close()
+                        all_processes.remove(p)
+                        logger.info('Processed {} products!'.format(processed_products.value))
 
             counter += 1
 
     logger.info('Wait for all processes to finish!')
     for p in all_processes:
         p.join()
+        p.close()
+        all_processes.remove(p)
         logger.info('Processed {} products!'.format(processed_products.value))
 
 
@@ -74,7 +80,7 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
     open(output_path, 'w').close()
     logger.info('Initialize output file {}!'.format(output_path))
 
-    with gzip.open(file_path, 'rt', encoding='utf-8') as f:
+    with open(file_path, 'rt', encoding='utf-8') as f:
 
         for i, line in enumerate(f):
             reader = csv.reader([line], delimiter=' ', quotechar='"')
@@ -124,7 +130,8 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
 
                             elif r[1] == '<http://schema.org/Product/description>':
                                 prep_value = preprocess_value(r[2])
-                                if len(prep_value) > 0 and prep_value != 'null':
+                                exclude_values = ['description', 'a href', 'various', 'share', '0', 'more']
+                                if len(prep_value) > 0 and prep_value != 'null' and prep_value not in exclude_values:
                                     product['Description'] = prep_value
 
                             # elif 'breadcrumblist' in r[2].lower():
@@ -134,7 +141,7 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
 
                             elif 'category' in r[1].lower():
                                 prep_value = preprocess_value(r[2])
-                                if len(prep_value) > 0 and prep_value != 'null':
+                                if len(prep_value) > 0 and prep_value != 'null' and prep_value != 'more section not available':
                                     if prep_value not in product['Category']:
                                         product['Category'] = '{} {}'.format(product['Category'], prep_value).lstrip()
                                         categories.add(r[1])
@@ -145,6 +152,7 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
                                     # logger.info(r)
                                 else:
                                     prep_value = preprocess_value(r[2])
+                                    prep_value = re.sub(r"^home", '', prep_value).strip()
                                     if len(prep_value) > 0 and prep_value != 'null':
                                         if prep_value not in product['Breadcrumb']:
                                             product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'],
@@ -161,15 +169,16 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
                                 # logger.info(r)
                                 else:
                                     prep_value = preprocess_value(r[2])
+                                    prep_value = re.sub(r"^home", '', prep_value).strip()
                                     if len(prep_value) > 0 and prep_value != 'null':
                                         product['BreadcrumbList'] = '{} {}'.format(product['BreadcrumbList'],
                                                                                    prep_value).lstrip()
                                         breadcrumbLists.add(r[1])
 
                             elif 'breadcrumb' in r[1].lower():
-                                if r[1] != '<http://schema.org/Breadcrumb/url>' and r[
-                                    1] != '<http://schema.org/Breadcrumb/child>':
+                                if r[1] != '<http://schema.org/Breadcrumb/url>' and r[1] != '<http://schema.org/Breadcrumb/child>':
                                     prep_value = preprocess_value(r[2])
+                                    prep_value = re.sub(r"^home", '', prep_value)
                                     if len(prep_value) > 0 and prep_value != 'null':
                                         if prep_value not in product['Breadcrumb']:
                                             product['Breadcrumb'] = '{} {}'.format(product['Breadcrumb'],
