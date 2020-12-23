@@ -5,6 +5,7 @@ import copy
 from multiprocessing import Process, Semaphore, Value
 import time
 from os import listdir
+from pathlib import Path
 
 import click
 
@@ -30,12 +31,20 @@ def main(file_dir, output_dir, host_path, worker):
             input_file = '{}/{}'.format(file_dir, file)
             output_file = '{}/{}.txt'.format(output_dir, file.split('.')[-2])
 
-            sema.acquire()
-            process = Process(target=extract_products, args=(input_file, output_file, hosts, sema, processed_products,))
-            all_processes.append(process)
-            process.start()
-            logger.info('Started {} processes!'.format(counter))
-            logger.info('Processed {} products!'.format(processed_products.value))
+            # Check if output file does not exist!
+            if not Path(output_file).is_file():
+                sema.acquire()
+                process = Process(target=extract_products, args=(input_file, output_file, hosts, sema, processed_products,))
+                all_processes.append(process)
+                process.start()
+                logger.info('Started {} processes!'.format(counter))
+
+            # Join finished processes
+            for p in all_processes:
+                if p.exitcode == 0:
+                    p.join()
+                    logger.info('Processed {} products!'.format(processed_products.value))
+
             counter += 1
 
     logger.info('Wait for all processes to finish!')
@@ -63,7 +72,7 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
 
     # Initialize output file
     open(output_path, 'w').close()
-    logger.info('Inialize output file {}!'.format(output_path))
+    logger.info('Initialize output file {}!'.format(output_path))
 
     with gzip.open(file_path, 'rt', encoding='utf-8') as f:
 
