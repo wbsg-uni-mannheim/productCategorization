@@ -28,7 +28,7 @@ def main(file_dir, output_dir, host_path, worker):
     counter = 1
 
     for file in listdir(file_dir):
-        if '.txt' in file:
+        if '.gz' in file:
             input_file = '{}/{}'.format(file_dir, file)
             output_file = '{}/{}.txt'.format(output_dir, file.split('.')[-2])
 
@@ -80,7 +80,7 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
     open(output_path, 'w').close()
     logger.info('Initialize output file {}!'.format(output_path))
 
-    with open(file_path, 'rt', encoding='utf-8') as f:
+    with gzip.open(file_path, 'rt', encoding='utf-8') as f:
 
         for i, line in enumerate(f):
             reader = csv.reader([line], delimiter=' ', quotechar='"')
