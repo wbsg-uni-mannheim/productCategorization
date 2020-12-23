@@ -12,7 +12,7 @@ def main(file_dir, output_file):
 
     logger.info('Start to aggregate products')
 
-    df_products = pd.DataFrame()
+    list_dataframes = []
 
     for file in tqdm(listdir(file_dir)):
         if '.txt' in file:
@@ -20,14 +20,14 @@ def main(file_dir, output_file):
             try:
                 df_new_products = pd.read_csv(filepath_or_buffer=file_path, sep=';')
                 df_new_products = drop_duplicates(df_new_products)
-
-                # Drop duplicates from complete df
-                df_products = df_products.append(df_new_products, ignore_index=True)
-                df_products = drop_duplicates(df_products)
+                list_dataframes.append(df_new_products)
 
             except pd.errors.EmptyDataError:
-                logger.info('File {} is empty'.format(file_path))
+                logger.info('File {} is empty!'.format(file_path))
 
+    logger.info('Concat dataframes!')
+    df_products = pd.concat(list_dataframes)
+    df_products = drop_duplicates(df_products)
     df_products.to_csv(output_file, sep=';', index=False)
     logger.info('Aggregated results written to {}!'.format(output_file))
 
