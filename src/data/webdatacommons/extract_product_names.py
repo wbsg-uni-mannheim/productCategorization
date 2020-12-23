@@ -66,7 +66,7 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
     counter = 0
     product = {'Title': 'Title', 'Description': 'Description', 'Category': 'Category',
                'Breadcrumb': 'Breadcrumb', 'BreadcrumbList': 'BreadcrumbList',
-               'Breadcrumb-Predicate': 'Breadcrumb-Predicate'}
+               'Breadcrumb-Predicate': 'Breadcrumb-Predicate', 'URL': 'URL'}
     uri = 'initial'
     p = None  # Process for Multithreading
 
@@ -116,6 +116,7 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
                                 break
 
                         if searched_host:
+                            product['URL'] = r[3]
                             if r[1] == '<http://schema.org/Product/name>' and '@en' in r[2]:
                                 prep_value = preprocess_value(r[2])
                                 if len(prep_value) > 0 and prep_value != 'null':
@@ -231,10 +232,10 @@ def parallel_write(p, products, path):
 def write_to_disk(products, path):
     with open(path, 'a') as out_f:
         for product in products:
-            line = '{};{};{};{};{};{}\n'.format(product['Title'], product['Description'],
+            line = '{};{};{};{};{};{};{}\n'.format(product['Title'], product['Description'],
                                                 product['Category'], product['Breadcrumb'],
                                                 product['BreadcrumbList'],
-                                                product['Breadcrumb-Predicate'])
+                                                product['Breadcrumb-Predicate'], product['URL'])
             out_f.write(line)
 
 
