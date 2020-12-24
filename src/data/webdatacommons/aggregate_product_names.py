@@ -18,7 +18,7 @@ def main(file_dir, output_file):
         if '.txt' in file:
             file_path = '{}/{}'.format(file_dir, file)
             try:
-                df_new_products = pd.read_csv(filepath_or_buffer=file_path, sep=';')
+                df_new_products = pd.read_csv(filepath_or_buffer=file_path, sep=';', error_bad_lines=False)
                 df_new_products = drop_duplicates(df_new_products)
                 list_dataframes.append(df_new_products)
 
