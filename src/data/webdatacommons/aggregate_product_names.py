@@ -20,6 +20,10 @@ def main(file_dir, output_file):
             try:
                 df_new_products = pd.read_csv(filepath_or_buffer=file_path, sep=';', error_bad_lines=False)
                 df_new_products = drop_duplicates(df_new_products)
+
+                df_new_products['host'] = df_new_products['URL'].apply(extract_host)
+
+
                 list_dataframes.append(df_new_products)
 
             except pd.errors.EmptyDataError:
@@ -36,6 +40,16 @@ def drop_duplicates(df):
     df.drop_duplicates(subset=['Title'], inplace=True)
 
     return df
+
+def extract_host(value):
+
+    value = value.replace('<', '')
+    value = value.replace('https://', '')
+    value = value.replace('http://', '')
+    value = value.split('/')[0]
+    value = value.replace('www.', '')
+
+    return value
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
