@@ -36,7 +36,7 @@ def main(file_dir, output_file):
     logger.info('Aggregated results written to {}!'.format(output_file))
 
 def drop_duplicates(df):
-    df.sort_values(by=['Category', 'Breadcrumb', 'BreadcrumbList', 'Description'])
+    df.sort_values(by=['Category', 'Breadcrumb', 'BreadcrumbList', 'Description'], inplace=True)
     df.drop_duplicates(subset=['Title'], inplace=True)
 
     return df
