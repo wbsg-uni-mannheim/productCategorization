@@ -166,18 +166,19 @@ def store_dataset_for_language_modelling(dataset, dataset_name, df_additional):
 
                 line = '{} - {}\n'.format(prep_title, description)
                 file.write(line)
+                
+            if split == 'train':
+                for index, row in df_additional.iterrows():
+                    if type(row['Description']) is str:
+                        description_values = row['Description'].split('.')
+                        description = ''
+                        for value in description_values:
+                            if len(value) > 4:
+                                prep_value = preprocess(value)
+                                description = '{}. {}'.format(description, prep_value).strip()
 
-            for index, row in df_additional.iterrows():
-                if type(row['Description']) is str:
-                    description_values = row['Description'].split('.')
-                    description = ''
-                    for value in description_values:
-                        if len(value) > 4:
-                            prep_value = preprocess(value)
-                            description = '{}. {}'.format(description, prep_value).strip()
-
-                    line = '{} - {}.\n'.format(row['Title'], description)
-                    file.write(line)
+                        line = '{} - {}.\n'.format(row['Title'], description)
+                        file.write(line)
 
         logger.info('File {} created for Language Modelling!'.format(relative_path))
 
