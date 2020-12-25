@@ -166,7 +166,7 @@ def store_dataset_for_language_modelling(dataset, dataset_name, df_additional):
 
                 line = '{} - {}\n'.format(prep_title, description)
                 file.write(line)
-                
+
             if split == 'train':
                 for index, row in df_additional.iterrows():
                     if type(row['Description']) is str:
