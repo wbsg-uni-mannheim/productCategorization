@@ -1,0 +1,17 @@
+{
+  "dataset": "wdc_ziqi",
+  "parameter":
+    {
+      "epochs": 25,
+      "experiment_name": "roberta-base-flat-14",
+      "gradient_accumulation_steps": 2,
+      "metric_for_best_model": "h_f1",
+      "model_name": "roberta-base",
+      "pretrained_model_or_path": "/work-ceph/alebrink/productCategorization/models/wdc_ziqi/pretrained_transformers/language-modelling-wdc-4",
+      "per_device_train_batch_size": 8,
+      "weight_decay": 0.01,
+      "preprocessing": true,
+      "description": true
+    },
+  "type": "transformer-based"
+}
