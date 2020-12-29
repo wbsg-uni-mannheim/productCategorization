@@ -22,13 +22,14 @@ def main(file_dir, output_dir, host_path, worker):
     logger = logging.getLogger(__name__)
     # Load searched hosts
     hosts = load_hosts(host_path)
+
     sema = Semaphore(worker)
     processed_products = Value('i', 0)
     all_processes = []
     counter = 1
 
     for file in listdir(file_dir):
-        if '.gz' in file:
+        if '.txt' in file:
             input_file = '{}/{}'.format(file_dir, file)
             output_file = '{}/{}.txt'.format(output_dir, file.split('.')[-2])
 
@@ -61,7 +62,7 @@ def main(file_dir, output_dir, host_path, worker):
 
 
 def extract_products(file_path, output_path, hosts, sema, processed_products):
-    logging.basicConfig(filename='myapp.log', level=logging.INFO)
+    logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
     categories = set()
@@ -80,7 +81,7 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
     open(output_path, 'w').close()
     logger.info('Initialize output file {}!'.format(output_path))
 
-    with gzip.open(file_path, 'rt', encoding='utf-8') as f:
+    with open(file_path, 'rt', encoding='utf-8') as f:
 
         for i, line in enumerate(f):
             reader = csv.reader([line], delimiter=' ', quotechar='"')
@@ -115,11 +116,13 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
                                         logger.info('Breadcrumblists value: {}'.format(value))
 
                         # Check if we look for the given host
-                        searched_host = False
-                        for host in hosts:
-                            if host in r[3]:
-                                searched_host = True
-                                break
+                        searched_host = True
+                        if hosts is not None:
+                            searched_host = False
+                            for host in hosts:
+                                if host in r[3]:
+                                    searched_host = True
+                                    break
 
                         if searched_host:
                             product['URL'] = r[3]
@@ -188,7 +191,7 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
                                             breadcrumbs.add(r[1])
 
             except csv.Error as e:
-                print(e)
+                logger.error(e)
 
     p = parallel_write(p, collected_products, output_path)
     logger.info('Written {} product names to disc.'.format(counter))
@@ -213,16 +216,22 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
 
 def load_hosts(host_path):
     logger = logging.getLogger(__name__)
-    hosts = []
-    counter = 0
-    with open(host_path, 'r') as host_file:
-        lines = host_file.readlines()
-        for line in lines:
-            hosts.append(line.strip())
-            counter += 1
+    if host_path is None:
+        logger.info('No host path supplied!')
+        logger.info('Will not load any hosts for filtering!')
 
-    logger.info('Loaded {} hosts!'.format(counter))
-    return hosts
+        return None
+    else:
+        hosts = []
+        counter = 0
+        with open(host_path, 'r') as host_file:
+            lines = host_file.readlines()
+            for line in lines:
+                hosts.append(line.strip())
+                counter += 1
+
+        logger.info('Loaded {} hosts!'.format(counter))
+        return hosts
 
 
 def parallel_write(p, products, path):
