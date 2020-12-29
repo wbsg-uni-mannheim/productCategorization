@@ -19,7 +19,7 @@ def main(file, host_path, output_file, num_products_per_host):
     hosts = load_hosts(host_path)
 
     for host in tqdm(hosts):
-        df_sub_products = df_products[df_products['host'].str.contains(host)]
+        df_sub_products = df_products[df_products['host'].str.contains(host)].sample(frac=1)
         df_sub_products = df_sub_products.head(num_products_per_host)
         list_products.append(df_sub_products)
 

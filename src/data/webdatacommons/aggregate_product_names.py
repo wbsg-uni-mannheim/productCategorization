@@ -20,7 +20,7 @@ def main(file_dir, output_file):
             try:
                 df_new_products = pd.read_csv(filepath_or_buffer=file_path, sep=';', error_bad_lines=False)
                 df_new_products = drop_duplicates(df_new_products)
-                df_new_products = remove_hosts_based_on_count(df_new_products, 500)
+                df_new_products = remove_hosts_based_on_count(df_new_products, 100)
 
 
                 list_dataframes.append(df_new_products)
@@ -31,8 +31,10 @@ def main(file_dir, output_file):
     logger.info('Concat dataframes!')
     df_products = pd.concat(list_dataframes)
     df_products = drop_duplicates(df_products)
+    df_products = remove_hosts_based_on_count(df_products, 100)
     df_products.to_csv(output_file, sep=';', index=False)
     logger.info('Aggregated results written to {}!'.format(output_file))
+    logger.info('Aggregated dataset contains {} products!'.format(len(df_products)))
 
 def drop_duplicates(df):
     df.sort_values(by=['Category', 'Breadcrumb', 'BreadcrumbList', 'Description'], inplace=True)
@@ -45,7 +47,7 @@ def remove_hosts_based_on_count(df, count):
     host_counts = df['Host'].value_counts()
     for host, counts in host_counts[host_counts > count].items():
         # Shuffle and choose rows to be dropped
-        df_products_to_be_dropped = df[df['Host'] == host].sample(frac=1)[10:]
+        df_products_to_be_dropped = df[df['Host'] == host].sample(frac=1)[count:]
         df.drop(df_products_to_be_dropped.index, inplace=True)
 
     return df
