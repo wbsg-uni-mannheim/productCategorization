@@ -7,10 +7,12 @@ import time
 from os import listdir
 from pathlib import Path
 import re
+import pandas as pd
 
 import click
 
 from src.data.preprocessing import preprocess
+from src.data.wdc_ziqi.extract_hosts import extract_host
 
 
 @click.command()
@@ -71,14 +73,16 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
 
     collected_products = []
     counter = 0
-    product = {'Title': 'Title', 'Description': 'Description', 'Category': 'Category',
-               'Breadcrumb': 'Breadcrumb', 'BreadcrumbList': 'BreadcrumbList',
-               'Breadcrumb-Predicate': 'Breadcrumb-Predicate', 'URL': 'URL'}
-    uri = 'initial'
+    product = {'Title': '', 'Description': '', 'Category': '', 'Breadcrumb': '',
+               'BreadcrumbList': '', 'Breadcrumb-Predicate': '', 'URL': '', 'Host': ''}
+    uri = None
     p = None  # Process for Multithreading
 
     # Initialize output file
-    open(output_path, 'w').close()
+    with open(output_path, 'w') as out_f:
+        line = 'Title;Description;Category;Breadcrumb;BreadcrumbList;Breadcrumb-Predicate;URL;Host\n'
+        out_f.write(line)
+
     logger.info('Initialize output file {}!'.format(output_path))
 
     with open(file_path, 'rt', encoding='utf-8') as f:
@@ -89,8 +93,8 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
                 for r in reader:
                     if len(r) > 4:
 
-                        if r[3] != uri:
-                            uri = r[3]
+                        if not (uri is None) and r[3] != uri and '.' in uri:
+
                             if len(product['Title']) > 0 and (len(product['Category']) > 0 or
                                                               len(product['Breadcrumb']) > 0 or
                                                               len(product['Description']) > 0 or  # Relax constraints
@@ -114,6 +118,9 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
 
                                     for value in breadcrumbLists:
                                         logger.info('Breadcrumblists value: {}'.format(value))
+
+                        #Update URI
+                        uri = r[3]
 
                         # Check if we look for the given host
                         searched_host = True
@@ -194,7 +201,7 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
                 logger.error(e)
 
     p = parallel_write(p, collected_products, output_path)
-    logger.info('Written {} product names to disc.'.format(counter))
+    logger.info('Written offers to disc.')
     p.join()
 
     for value in categories:
@@ -207,7 +214,7 @@ def extract_products(file_path, output_path, hosts, sema, processed_products):
         logger.info('Breadcrumblists value: {}'.format(value))
 
     # Share info about processed products -1: Don't count header row
-    processed_products.value = processed_products.value + counter -1
+    processed_products.value = processed_products.value + counter
     # Release Sema so that new processes can start!
     sema.release()
 
@@ -242,19 +249,41 @@ def parallel_write(p, products, path):
         end = time.time()
         elapsed_time = end - start
         logger.info('Waited for {}'.format(elapsed_time))
-    p = Process(target=write_to_disk, args=(copy.deepcopy(products), path))
+    p = Process(target=remove_duplicates_and_write_to_disk, args=(copy.deepcopy(products), path))
     p.start()
     return p
 
+def remove_duplicates_and_write_to_disk(products, path):
+    # Convert to pandas df
+    logger = logging.getLogger(__name__)
+    dict_products = {'Title': [], 'Category': [], 'Breadcrumb': [], 'BreadcrumbList':[], 'Breadcrumb-Predicate': [],
+                     'Description':[], 'URL': [], 'Host': []}
+    for product in products:
+        for key in dict_products:
+            if key == 'Host':
+                host = extract_host(product['URL'])
+                dict_products['Host'].append(host)
+            elif key in product:
+                dict_products[key].append(product[key])
+            else:
+                dict_products[key].append('')
 
-def write_to_disk(products, path):
-    with open(path, 'a') as out_f:
-        for product in products:
-            line = '{};{};{};{};{};{};{}\n'.format(product['Title'], product['Description'],
-                                                product['Category'], product['Breadcrumb'],
-                                                product['BreadcrumbList'],
-                                                product['Breadcrumb-Predicate'], product['URL'])
-            out_f.write(line)
+
+
+    df_products = pd.DataFrame.from_dict(dict_products)
+    df_products.sort_values(by=['Category', 'Breadcrumb', 'BreadcrumbList', 'Description'], inplace=True)
+    df_products.drop_duplicates(subset=['Title'], inplace=True)
+
+    # Remove hosts based on count
+    host_counts = df_products['Host'].value_counts()
+    for host, count in host_counts[host_counts > 500].items():
+        # Shuffle and choose rows to be dropped
+        df_products_to_be_dropped = df_products[df_products['Host'] == host].sample(frac=1)[10:]
+        df_products.drop(df_products_to_be_dropped.index, inplace=True)
+
+    df_products.to_csv(path, sep=';', index=False, mode='a', header=False)
+
+    logger.info('Written {} offers to {}!'.format(len(df_products), path))
 
 
 def preprocess_value(value):

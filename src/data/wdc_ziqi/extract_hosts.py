@@ -21,9 +21,12 @@ def main(file_paths, output_path):
             out_file.write('{}\n'.format(host))
 
 def extract_host(value):
+
+    value = value.replace('<', '')
     value = value.replace('https://', '')
     value = value.replace('http://', '')
     value = value.split('/')[0]
+    value = value.split('?')[0]
     value = value.replace('www.', '')
 
     return value
