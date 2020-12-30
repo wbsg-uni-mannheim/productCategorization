@@ -104,6 +104,106 @@ def store_dataset_for_language_modelling(dataset, dataset_name, df_additional):
 
         logger.info('File {} created for Language Modelling!'.format(relative_path))
 
+        relative_path = 'data/processed/{}/language-modelling/{}_language_modelling_{}_with_category_reverse_as_sentence_additional_ds.txt'.format(dataset_name, split, dataset_name)
+        file_path = data_dir.joinpath(relative_path)
+        with open(file_path, 'w') as file:
+
+            for index, row in dataset[split].iterrows():
+                #preprocess value
+                prep_title = preprocess(row['title'])
+                categories = row['path_list'].split('>')
+                categories = [value.split('_')[1] for value in categories]
+                categories = [preprocess(value) for value in categories]
+                categories.reverse()
+                prep_catgories = ', '.join(categories)
+                line = '{} belongs to {}.\n'.format(prep_title, prep_catgories)
+                file.write(line)
+
+            if split == 'train':
+                for index, row in df_additional.iterrows():
+                    categories = []
+                    if row['Category'] is not None and type(row['Category']) is str:
+                        categories.append(row['Category'])
+                    if row['Breadcrumb'] is not None and type(row['Breadcrumb']) is str:
+                        categories.append(row['Breadcrumb'])
+                    if row['BreadcrumbList'] is not None and type(row['BreadcrumbList']) is str:
+                        categories.append(row['BreadcrumbList'])
+
+                    if len(categories) > 0:
+                        categories.reverse()
+                        prep_categories = ' '.join(categories).strip()
+
+                        line = '{} belongs to {}.\n'.format(row['Title'], prep_categories)
+                        file.write(line)
+
+        logger.info('File {} created for Language Modelling!'.format(relative_path))
+
+        relative_path = 'data/processed/{}/language-modelling/{}_language_modelling_{}_with_category_additional_ds.txt'.format(dataset_name, split, dataset_name)
+        file_path = data_dir.joinpath(relative_path)
+        with open(file_path, 'w') as file:
+
+            for index, row in dataset[split].iterrows():
+                #preprocess value
+                prep_title = preprocess(row['title'])
+                categories = row['path_list'].split('>')
+                categories = [value.split('_')[1] for value in categories]
+                categories = [preprocess(value) for value in categories]
+                prep_catgories = ', '.join(categories)
+                line = '{} - {}.\n'.format(prep_title, prep_catgories)
+                file.write(line)
+
+            if split == 'train':
+                for index, row in df_additional.iterrows():
+                    categories = []
+                    if row['Category'] is not None and type(row['Category']) is str:
+                        categories.append(row['Category'])
+                    if row['Breadcrumb'] is not None and type(row['Breadcrumb']) is str:
+                        categories.append(row['Breadcrumb'])
+                    if row['BreadcrumbList'] is not None and type(row['BreadcrumbList']) is str:
+                        categories.append(row['BreadcrumbList'])
+
+                    if len(categories) > 0:
+                        prep_categories = ' '.join(categories).strip()
+
+                        line = '{} - {}.\n'.format(row['Title'], prep_categories)
+                        file.write(line)
+
+        logger.info('File {} created for Language Modelling!'.format(relative_path))
+
+        relative_path = 'data/processed/{}/language-modelling/{}_language_modelling_{}_with_category_reverse_additional_ds.txt'.format(dataset_name, split, dataset_name)
+        file_path = data_dir.joinpath(relative_path)
+        with open(file_path, 'w') as file:
+
+            for index, row in dataset[split].iterrows():
+                #preprocess value
+                prep_title = preprocess(row['title'])
+                categories = row['path_list'].split('>')
+                categories = [value.split('_')[1] for value in categories]
+                categories = [preprocess(value) for value in categories]
+                categories.reverse()
+                prep_catgories = ', '.join(categories)
+                line = '{} - {}.\n'.format(prep_title, prep_catgories)
+                file.write(line)
+
+            if split == 'train':
+                for index, row in df_additional.iterrows():
+                    categories = []
+                    if row['Category'] is not None and type(row['Category']) is str:
+                        categories.append(row['Category'])
+                    if row['Breadcrumb'] is not None and type(row['Breadcrumb']) is str:
+                        categories.append(row['Breadcrumb'])
+                    if row['BreadcrumbList'] is not None and type(row['BreadcrumbList']) is str:
+                        categories.append(row['BreadcrumbList'])
+
+                    if len(categories) > 0:
+                        categories.reverse()
+                        prep_categories = ' '.join(categories).strip()
+
+                        line = '{} - {}.\n'.format(row['Title'], prep_categories)
+                        file.write(line)
+
+        logger.info('File {} created for Language Modelling!'.format(relative_path))
+
         # relative_path = 'data/processed/{}/language-modelling/{}_language_modelling_{}_with_only_one_category_as_sentence.txt'.format(dataset_name, split, dataset_name)
         # file_path = data_dir.joinpath(relative_path)
         # with open(file_path, 'w') as file:
@@ -175,7 +275,7 @@ def store_dataset_for_language_modelling(dataset, dataset_name, df_additional):
                         for value in description_values:
                             if len(value) > 4:
                                 prep_value = preprocess(value)
-                                description = '{}. {}'.format(description, prep_value).strip()
+                                description = '{} - {}'.format(description, prep_value).strip()
 
                         line = '{} - {}.\n'.format(row['Title'], description)
                         file.write(line)
@@ -235,6 +335,113 @@ def store_dataset_for_language_modelling(dataset, dataset_name, df_additional):
                         file.write(line)
 
         logger.info('File {} created for Language Modelling!'.format(relative_path))
+
+        relative_path = 'data/processed/{}/language-modelling/{}_language_modelling_{}_with_category_and_descriptions_one_line_additional_ds.txt'.format(
+            dataset_name, split, dataset_name)
+        file_path = data_dir.joinpath(relative_path)
+        with open(file_path, 'w') as file:
+
+            for index, row in dataset[split].iterrows():
+                # preprocess value
+                prep_title = preprocess(row['title'])
+                categories = row['path_list'].split('>')
+                categories = [value.split('_')[1] for value in categories]
+                categories = [preprocess(value) for value in categories]
+                prep_catgories = ', '.join(categories)
+
+                description_values = row['description'].split('.')
+                description = ''
+                for value in description_values:
+                    if len(value) > 4:
+                        prep_value = preprocess(value)
+                        description = '{} - {}'.format(description, prep_value).strip()
+
+                line = '{} - {} - {}.\n'.format(prep_title, prep_catgories, description)
+                file.write(line)
+
+            if split == 'train':
+                for index, row in df_additional.iterrows():
+                    categories = []
+                    if row['Category'] is not None and type(row['Category']) is str:
+                        categories.append(row['Category'])
+                    if row['Breadcrumb'] is not None and type(row['Breadcrumb']) is str:
+                        categories.append(row['Breadcrumb'])
+                    if row['BreadcrumbList'] is not None and type(row['BreadcrumbList']) is str:
+                        categories.append(row['BreadcrumbList'])
+
+                    line = row['Title']
+                    if len(categories) > 0:
+                        prep_categories = ' '.join(categories).strip()
+
+                        line = '{} - {}'.format(line, prep_categories)
+
+                    if type(row['Description']) is str:
+                        description_values = row['Description'].split('.')
+                        description = ''
+                        for value in description_values:
+                            if len(value) > 4:
+                                prep_value = preprocess(value)
+                                description = '{} - {}'.format(description, prep_value).strip()
+
+                        line = '{} - {}'.format(line, description)
+                    file.write('{}\n'.format(line))
+
+        logger.info('File {} created for Language Modelling!'.format(relative_path))
+
+        relative_path = 'data/processed/{}/language-modelling/{}_language_modelling_{}_with_category_reverse_and_descriptions_one_line_additional_ds.txt'.format(
+            dataset_name, split, dataset_name)
+        file_path = data_dir.joinpath(relative_path)
+        with open(file_path, 'w') as file:
+
+            for index, row in dataset[split].iterrows():
+                # preprocess value
+                prep_title = preprocess(row['title'])
+                categories = row['path_list'].split('>')
+                categories = [value.split('_')[1] for value in categories]
+                categories = [preprocess(value) for value in categories]
+                categories.reverse()
+                prep_catgories = ', '.join(categories)
+
+                description_values = row['description'].split('.')
+                description = ''
+                for value in description_values:
+                    if len(value) > 4:
+                        prep_value = preprocess(value)
+                        description = '{} - {}'.format(description, prep_value).strip()
+
+                line = '{} - {} - {}.\n'.format(prep_title, prep_catgories, description)
+                file.write(line)
+
+            if split == 'train':
+                for index, row in df_additional.iterrows():
+                    categories = []
+                    if row['Category'] is not None and type(row['Category']) is str:
+                        categories.append(row['Category'])
+                    if row['Breadcrumb'] is not None and type(row['Breadcrumb']) is str:
+                        categories.append(row['Breadcrumb'])
+                    if row['BreadcrumbList'] is not None and type(row['BreadcrumbList']) is str:
+                        categories.append(row['BreadcrumbList'])
+
+                    line = row['Title']
+                    if len(categories) > 0:
+                        categories.reverse()
+                        prep_categories = ' '.join(categories).strip()
+
+                        line = '{} - {}'.format(line, prep_categories)
+
+                    if type(row['Description']) is str:
+                        description_values = row['Description'].split('.')
+                        description = ''
+                        for value in description_values:
+                            if len(value) > 4:
+                                prep_value = preprocess(value)
+                                description = '{}. {}'.format(description, prep_value).strip()
+
+                        line = '{} - {}'.format(line, description)
+                    file.write('{}\n'.format(line))
+
+        logger.info('File {} created for Language Modelling!'.format(relative_path))
+
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
