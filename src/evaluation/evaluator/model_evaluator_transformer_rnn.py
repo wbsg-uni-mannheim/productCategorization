@@ -117,27 +117,27 @@ class ModelEvaluatorTransformerRNN(ModelEvaluator):
         result_collector = ResultCollector(self.dataset_name, self.experiment_type)
         result_collector.results[self.experiment_name] = trainer.evaluate(ds_wdc)
 
-        # Predict values for error analysis
-        pred = trainer.predict(ds_wdc)
+        # Predict values for error analysis --> Uncomment to retrieve prediction results
+        #pred = trainer.predict(ds_wdc)
 
-        labels, preds, labels_per_lvl, preds_per_lvl = evaluator.transpose_rnn_hierarchy(pred)
+        #labels, preds, labels_per_lvl, preds_per_lvl = evaluator.transpose_rnn_hierarchy(pred)
 
-        ds_eval['Leaf Label'] = [normalized_decoder[label] for label in labels]
-        ds_eval['Leaf Prediction'] = [normalized_decoder[pred] for pred in preds]
+        #ds_eval['Leaf Label'] = [normalized_decoder[label]['original_key'] for label in labels]
+        #ds_eval['Leaf Prediction'] = [normalized_decoder[pred]['original_key'] for pred in preds]
 
-        counter = 1
-        for labs, predictions in zip(labels_per_lvl, preds_per_lvl):
-            column_name_label = 'Hierarchy Level {} Label'.format(counter)
-            column_name_prediction = 'Hierarchy Level {} Prediction'.format(counter)
+        #counter = 1
+        #for labs, predictions in zip(labels_per_lvl, preds_per_lvl):
+        #    column_name_label = 'Hierarchy Level {} Label'.format(counter)
+        #    column_name_prediction = 'Hierarchy Level {} Prediction'.format(counter)
 
-            ds_eval[column_name_label] = [normalized_decoder[label] for label in labs]
-            ds_eval[column_name_prediction] = [normalized_decoder[prediction] for prediction in predictions]
+        #    ds_eval[column_name_label] = [normalized_decoder[label] for label in labs]
+        #    ds_eval[column_name_prediction] = [normalized_decoder[prediction] for prediction in predictions]
 
-            counter += 1
+        #    counter += 1
 
-        full_prediction_output = '{}/{}'.format(self.data_dir, self.prediction_output)
-        ds_eval.to_csv(full_prediction_output, index=False, sep=';', encoding='utf-8', quotechar='"',
-                                      quoting=csv.QUOTE_ALL)
+        #full_prediction_output = '{}/{}'.format(self.data_dir, self.prediction_output)
+        #ds_eval.to_csv(full_prediction_output, index=False, sep=';', encoding='utf-8', quotechar='"',
+        #                              quoting=csv.QUOTE_ALL)
 
         # Persist results
         timestamp = time.time()
