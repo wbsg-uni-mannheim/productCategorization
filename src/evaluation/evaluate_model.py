@@ -75,6 +75,7 @@ def augment_experiments(experiment):
         exp_config = json.load(f)
 
     experiment_path = experiment.split('.')[0]
+    initial_prediction_output = exp_config['prediction_output']
 
     # Generate new configurations
     generated_experiments = []
@@ -88,6 +89,9 @@ def augment_experiments(experiment):
                 prefix_experiment_name = experiment_path.split('/')[-1]
             experiment_name = '{}_{}_{}'.format(prefix_experiment_name, learning_rate, seed)
             exp_config['experiment_name'] = experiment_name
+            prediction_output = '{}_{}_{}.pkl'.format(initial_prediction_output, learning_rate, seed)
+            exp_config['prediction_output'] = prediction_output
+
 
             path_new_config = '{}_{}_{}.json'.format(experiment_path, learning_rate, seed)
             with open(path_new_config, 'w') as json_file:

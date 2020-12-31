@@ -3,8 +3,8 @@
   "dataset" : "icecat",
   "original_dataset" : "icecat",
   "original_experiment_name" : "roberta-base-rnn-1",
-  "model_path": "experiments/icecat/transformers/results/model/roberta-base-rnn-1",
-  "prediction_output": "experiments/icecat/transformers/results/icecat-roberta-base-rnn-1-prediction.pkl",
+  "model_path": "models/icecat/transformers/model/roberta-base-rnn-1",
+  "prediction_output": "data/prediction/icecat/results/icecat-roberta-base-rnn-1-prediction",
   "model_name": "roberta-base-hierarchy-rnn",
   "evaluate_on_full_dataset": false,
   "preprocessing": true
