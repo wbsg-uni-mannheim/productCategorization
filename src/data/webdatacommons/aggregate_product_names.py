@@ -21,7 +21,7 @@ def main(file_dir, output_file, no_products):
             try:
                 df_new_products = pd.read_csv(filepath_or_buffer=file_path, sep=';', error_bad_lines=False)
                 df_new_products = drop_duplicates(df_new_products)
-                df_new_products = remove_hosts_based_on_count(df_new_products, no_products)
+                df_new_products = remove_hosts_based_on_count(df_new_products, no_products, True)
                 # Take only the first 1000 products per file
                 df_new_products = df_new_products.head(1000)
 
@@ -34,7 +34,7 @@ def main(file_dir, output_file, no_products):
     logger.info('Concat dataframes!')
     df_products = pd.concat(list_dataframes, ignore_index=True)
     df_products = drop_duplicates(df_products)
-    df_products = remove_hosts_based_on_count(df_products, no_products)
+    df_products = remove_hosts_based_on_count(df_products, no_products, False)
     df_products.to_csv(output_file, sep=';', index=False)
     logger.info('Aggregated results written to {}!'.format(output_file))
     logger.info('Aggregated dataset contains {} products!'.format(len(df_products)))
@@ -45,11 +45,11 @@ def drop_duplicates(df):
 
     return df
 
-def remove_hosts_based_on_count(df, count):
+def remove_hosts_based_on_count(df, count, disable_progress_bar):
     # Remove hosts based on count
     host_counts = df['Host'].value_counts()
 
-    for host, counts in tqdm(host_counts[host_counts > count].items()):
+    for host, counts in tqdm(host_counts[host_counts > count].items(), disable=disable_progress_bar):
         # Shuffle and choose rows to be dropped
         df_products_to_be_dropped = df[df['Host'] == host].sample(frac=1)[count:]
         df.drop(df_products_to_be_dropped.index, inplace=True)
