@@ -74,8 +74,9 @@ class ModelEvaluatorTransformer(ModelEvaluator):
         prediction = trainer.predict(ds_wdc)
         preds = prediction.predictions.argmax(-1)
         ds_eval['prediction'] = [normalized_decoder[pred]['value'] for pred in preds]
+        full_prediction_output = '{}/{}'.format(self.data_dir, self.prediction_output)
 
-        ds_eval.to_csv(self.prediction_output, index=False, sep=';', encoding='utf-8', quotechar='"',
+        ds_eval.to_csv(full_prediction_output, index=False, sep=';', encoding='utf-8', quotechar='"',
                                       quoting=csv.QUOTE_ALL)
 
         # Persist results
