@@ -1,15 +1,14 @@
 import time
 import csv
 from pathlib import Path
-from transformers import RobertaForSequenceClassification, Trainer
+from transformers import Trainer
 
 from src.evaluation import scorer
 from src.evaluation.evaluator.model_evaluator import ModelEvaluator
 from src.models.transformers import utils
 from src.models.transformers.custom_transformers.roberta_for_hierarchical_classification_rnn import \
     RobertaForHierarchicalClassificationRNN
-from src.models.transformers.dataset.category_dataset_flat import CategoryDatasetFlat
-from src.models.transformers.dataset.category_dataset_rnn import CategoryDatasetMultiLabel
+from src.models.transformers.dataset.category_dataset_rnn import CategoryDatasetRNN
 from src.utils.result_collector import ResultCollector
 
 
@@ -99,9 +98,9 @@ class ModelEvaluatorTransformerRNN(ModelEvaluator):
         ds_eval['category'] = ds_eval['category'].str.replace(' ', '_')
         labels = list(ds_eval['category'].values)
 
-        tokenizer = utils.provide_tokenizer(self.model_name)
+        tokenizer = utils.roberta_base_tokenizer()
 
-        ds_wdc = CategoryDatasetMultiLabel(texts, labels, tokenizer, normalized_encoder)
+        ds_wdc = CategoryDatasetRNN(texts, labels, tokenizer, normalized_encoder)
 
         result_collector = ResultCollector(self.dataset_name, self.experiment_type)
         result_collector.results[self.experiment_name] = trainer.evaluate(ds_wdc)
