@@ -23,7 +23,7 @@ def main(file_dir, output_file, no_products):
                 df_new_products = drop_duplicates(df_new_products)
                 df_new_products = remove_hosts_based_on_count(df_new_products, no_products, True)
                 # Take only the first 1000 products per file
-                df_new_products = df_new_products.head(1000)
+                df_new_products = df_new_products.head(2000)
 
 
                 list_dataframes.append(df_new_products)
