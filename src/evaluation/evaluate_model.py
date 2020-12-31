@@ -76,6 +76,7 @@ def augment_experiments(experiment):
 
     experiment_path = experiment.split('.')[0]
     initial_prediction_output = exp_config['prediction_output']
+    initial_model_path = exp_config['model_path']
 
     # Generate new configurations
     generated_experiments = []
@@ -91,6 +92,8 @@ def augment_experiments(experiment):
             exp_config['experiment_name'] = experiment_name
             prediction_output = '{}_{}_{}.pkl'.format(initial_prediction_output, learning_rate, seed)
             exp_config['prediction_output'] = prediction_output
+            model_path = '{}_{}_{}'.format(initial_model_path, learning_rate, seed)
+            exp_config['model_path'] = model_path
 
 
             path_new_config = '{}_{}_{}.json'.format(experiment_path, learning_rate, seed)
