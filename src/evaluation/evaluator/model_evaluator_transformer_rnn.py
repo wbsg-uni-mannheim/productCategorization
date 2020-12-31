@@ -64,26 +64,37 @@ class ModelEvaluatorTransformerRNN(ModelEvaluator):
         leaf_nodes = [decoder[node] for node in leaf_nodes]
 
         counter = 0
+        longest_path = 0
         for key in encoder:
             if key in leaf_nodes:
                 path = self.determine_path_to_root([encoder[key]])
-                if 'exploit_hierarchy' in self.parameter and self.parameter['exploit_hierarchy'] == "True":
+                if 'exploit_hierarchy' in self.parameter and self.parameter['exploit_hierarchy']:
                     path = self.normalize_path_from_root_per_parent(path)
 
                 normalized_encoder[key] = {'original_key': encoder[key], 'derived_key': counter,
                                            'derived_path': path}
                 normalized_decoder[counter] = {'original_key': encoder[key], 'value': key}
+                if len(path) > longest_path:
+                    longest_path = len(path)
+
                 counter += 1
 
-        # Total number of labels is determined by the number of labels in the tree
-        number_of_labels = len(self.tree)
+        # Align path length
+        fill_up_category = len(self.tree)
 
-        return normalized_encoder, normalized_decoder, encoder, decoder, number_of_labels
+        for key in normalized_encoder:
+            while len(normalized_encoder[key]['derived_path']) < longest_path:
+                normalized_encoder[key]['derived_path'].append(fill_up_category)
+
+        # Total number of labels is determined by the number of labels in the tree + 1 for out of category
+        number_of_labels = len(self.tree) + 1
+
+        return normalized_encoder, normalized_decoder, number_of_labels
 
     def evaluate(self):
         ds_eval = self.prepare_eval_dataset()
 
-        normalized_encoder, normalized_decoder, encoder, decoder, number_leaf_nodes = self.encode_labels()
+        normalized_encoder, normalized_decoder, number_of_labels = self.encode_labels()
 
         evaluator = scorer.HierarchicalScorer(self.experiment_name, self.tree, transformer_decoder=normalized_decoder)
         trainer = Trainer(
@@ -111,16 +122,16 @@ class ModelEvaluatorTransformerRNN(ModelEvaluator):
 
         labels, preds, labels_per_lvl, preds_per_lvl = evaluator.transpose_rnn_hierarchy(pred)
 
-        ds_eval['Leaf Label'] = [decoder[label] for label in labels]
-        ds_eval['Leaf Prediction'] = [decoder[pred] for pred in preds]
+        ds_eval['Leaf Label'] = [normalized_decoder[label] for label in labels]
+        ds_eval['Leaf Prediction'] = [normalized_decoder[pred] for pred in preds]
 
         counter = 1
         for labs, predictions in zip(labels_per_lvl, preds_per_lvl):
             column_name_label = 'Hierarchy Level {} Label'.format(counter)
             column_name_prediction = 'Hierarchy Level {} Prediction'.format(counter)
 
-            ds_eval[column_name_label] = [decoder[label] for label in labs]
-            ds_eval[column_name_prediction] = [decoder[prediction] for prediction in predictions]
+            ds_eval[column_name_label] = [normalized_decoder[label] for label in labs]
+            ds_eval[column_name_prediction] = [normalized_decoder[prediction] for prediction in predictions]
 
             counter += 1
 

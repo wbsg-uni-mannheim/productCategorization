@@ -63,7 +63,7 @@ class ModelEvaluatorTransformer(ModelEvaluator):
         ds_eval['category'] = ds_eval['category'].str.replace(' ', '_')
         labels = list(ds_eval['category'].values)
 
-        tokenizer = utils.provide_tokenizer(self.model_name)
+        tokenizer = utils.roberta_base_tokenizer()
 
         ds_wdc = CategoryDatasetFlat(texts, labels, tokenizer, normalized_encoder)
 
