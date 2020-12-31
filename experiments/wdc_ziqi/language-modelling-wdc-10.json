@@ -3,7 +3,7 @@
   "do_train": true,
   "do_eval": true,
   "line_by_line": true,
-  "num_train_epochs": 10,
+  "num_train_epochs": 5,
   "save_total_limit": 5,
   "model_name_or_path": "roberta-base",
   "train_file": "/work-ceph/alebrink/productCategorization/data/processed/wdc_ziqi/language-modelling/train_language_modelling_wdc_ziqi_with_category_reverse_and_descriptions_one_line_additional_ds_related_products.txt",
