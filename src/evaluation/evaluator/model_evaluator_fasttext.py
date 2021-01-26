@@ -64,8 +64,11 @@ class ModelEvaluatorFastText(ModelEvaluator):
         # Postprocess labels
         y_pred = [self.encoder[prediction[0]] for prediction in y_pred]
 
-        evaluator = scorer.HierarchicalEvaluator(self.dataset_name, self.experiment_name, None)
-        result_collector.results[self.experiment_name] = evaluator.compute_metrics(y_true, y_pred)
+        normalized_encoder, normalized_decoder, number_leaf_nodes = self.encode_labels()
+
+        evaluator = scorer.HierarchicalScorer(self.experiment_name, self.tree, transformer_decoder=normalized_decoder)
+
+        result_collector.results[self.experiment_name] = evaluator.compute_metrics_transformers_flat(y_true, y_pred)
 
         # Persist prediction
         ds_eval.to_pickle(self.prediction_output)
