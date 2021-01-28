@@ -5,14 +5,13 @@ from src.data.preprocessing import preprocess
 from src.evaluation import scorer
 from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.models.transformers import utils
-from src.models.transformers.custom_transformers import HierarchyRobertaConfig
-from src.models.transformers.dataset.category_dataset_rnn import CategoryDatasetMultiLabel
+from src.models.transformers.dataset.category_dataset_rnn import CategoryDatasetRNN
 from src.utils.result_collector import ResultCollector
 
 from transformers import TrainingArguments, Trainer, RobertaConfig
 
 
-class ExperimentRunnerTransformerHierarchyExploit(ExperimentRunner):
+class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
 
     def __init__(self, path, test, experiment_type):
         super().__init__(path, test, experiment_type)
@@ -37,22 +36,30 @@ class ExperimentRunnerTransformerHierarchyExploit(ExperimentRunner):
         nodes.append(predecessor)
         return self.determine_path_to_root(nodes)
 
-    def normalize_path_from_root_per_parent(self, path):
-        """Normalize label values per parent node"""
-        found_successor = self.root
+    def normalize_path_from_root_per_level(self, path):
+        """Normalize label values per level"""
         normalized_path = []
-        for searched_successor in path:
+        for i in range(len(path)):
             counter = 0
-            successors = self.tree.successors(found_successor)
-            for successor in successors:
+            nodes_per_lvl = self.get_all_nodes_per_lvl(i)
+            for node in nodes_per_lvl:
                 counter += 1
-                if searched_successor == successor:
+                if node == path[i]:
                     normalized_path.append(counter)
-                    found_successor = searched_successor
                     break
 
         assert (len(path) == len(normalized_path))
         return normalized_path
+
+    def get_all_nodes_per_lvl(self, level):
+        successors = self.tree.successors(self.root)
+        while level > 0:
+            next_lvl_succesors = []
+            for successor in successors:
+                next_lvl_succesors.extend(self.tree.successors(successor))
+            successors = next_lvl_succesors
+            level -= 1
+        return successors
 
     def encode_labels(self):
         """Encode & decode labels plus rescale encoded values"""
@@ -65,30 +72,58 @@ class ExperimentRunnerTransformerHierarchyExploit(ExperimentRunner):
         leaf_nodes = [decoder[node] for node in leaf_nodes]
 
         counter = 0
+        longest_path = 0
         for key in encoder:
             if key in leaf_nodes:
                 path = self.determine_path_to_root([encoder[key]])
-                if 'exploit_hierarchy' in self.parameter and self.parameter['exploit_hierarchy'] == "True":
-                    path = self.normalize_path_from_root_per_parent(path)
+
+                #Normalize Path per level in hierarchy
+                path = self.normalize_path_from_root_per_level(path)
 
                 normalized_encoder[key] = {'original_key': encoder[key], 'derived_key': counter,
                                            'derived_path': path}
                 normalized_decoder[counter] = {'original_key': encoder[key], 'value': key}
                 counter += 1
+                if len(path) > longest_path:
+                    longest_path = len(path)
 
-        # Total number of labels is determined by the number of labels in the tree
-        number_of_labels = len(self.tree)
+        # Number of labels per level is determined via the tree
+        num_labels_per_level = {}
+        next_labels_on_level = {}
+        for i in range(longest_path):
+            # Number of labels per level plus 1 for out of hierarchy nodes
+            node_level = [node for node in self.get_all_nodes_per_lvl(i)]
+            num_labels_per_level[i+1] = len(node_level) + 1
 
-        return normalized_encoder, normalized_decoder, number_of_labels
+            # Determine encoded successors
+            node_level_plus_one = [node for node in self.get_all_nodes_per_lvl(i+1)]
+            if len(node_level_plus_one) > 0:
+                encoded_successors_per_node = {}
+                for j in range(len(node_level)):
+                    node = node_level[j]
+                    successors = self.tree.successors(node)
+                    encoded_successors = []
+                    for succesor in successors:
+                        if succesor in node_level_plus_one:
+                            encoded_successor = node_level_plus_one.index(succesor) + 1 # 0 is out of hierarchy
+                            encoded_successors.append(encoded_successor)
+
+                    encoded_successors_per_node[j+1] = encoded_successors
+                next_labels_on_level[i+1] = encoded_successors_per_node
+
+        return normalized_encoder, normalized_decoder, num_labels_per_level, next_labels_on_level
 
     def run(self):
         """Run experiments"""
         result_collector = ResultCollector(self.dataset_name, self.experiment_type)
 
-        normalized_encoder, normalized_decoder, number_leaf_nodes = self.encode_labels()
+        normalized_encoder, normalized_decoder, num_labels_per_level, next_labels_on_level = self.encode_labels()
 
         config = RobertaConfig.from_pretrained("roberta-base")
-        config.tree = self.tree
+        config.num_labels_per_level = num_labels_per_level
+        config.next_labels_on_level = next_labels_on_level
+        config.hierarchy_certainty = self.parameter['hierarchy_certainty']
+        config.focal_loss = self.parameter['focal_loss']
 
         tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'], config=config)
 
@@ -108,13 +143,13 @@ class ExperimentRunnerTransformerHierarchyExploit(ExperimentRunner):
             # Normalize label values
             labels = [value.replace(' ', '_') for value in df_ds['category'].values]
 
-            tf_ds[key] = CategoryDatasetMultiLabel(texts, labels, tokenizer, normalized_encoder)
+            tf_ds[key] = CategoryDatasetRNN(texts, labels, tokenizer, normalized_encoder)
 
         timestamp = time.time()
         string_timestamp = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d_%H-%M-%S')
         training_args = TrainingArguments(
-            output_dir='./experiments/{}/transformers/model/{}'
-                .format(self.dataset_name, self.parameter['experiment_name']),
+            output_dir='{}/model/{}/transformers/model/{}'
+                .format(self.data_dir, self.dataset_name, self.parameter['experiment_name']),
             # output directory
             num_train_epochs=self.parameter['epochs'],  # total # of training epochs
             learning_rate=self.parameter['learning_rate'],
@@ -123,7 +158,7 @@ class ExperimentRunnerTransformerHierarchyExploit(ExperimentRunner):
             per_device_eval_batch_size=64,  # batch size for evaluation
             warmup_steps=500,  # number of warmup steps for learning rate scheduler
             weight_decay=self.parameter['weight_decay'],  # strength of weight decay
-            logging_dir='./experiments/{}/transformers/logs-{}'.format(self.dataset_name, string_timestamp),
+            logging_dir='{}/models/{}/transformers/logs-{}'.format(self.data_dir, self.dataset_name, string_timestamp),
             # directory for storing logs
             save_total_limit=5,  # Save only the last 5 Checkpoints
             metric_for_best_model=self.parameter['metric_for_best_model'],
@@ -133,7 +168,7 @@ class ExperimentRunnerTransformerHierarchyExploit(ExperimentRunner):
         )
 
         evaluator = scorer.HierarchicalScorer(self.parameter['experiment_name'], self.tree,
-                                              transformer_decoder=normalized_decoder)
+                                              transformer_decoder=normalized_decoder, num_labels_per_level= num_labels_per_level)
         trainer = Trainer(
             model=model,  # the instantiated 🤗 Transformers model to be trained
             args=training_args,  # training arguments, defined above

@@ -1,5 +1,4 @@
-from transformers import BertTokenizerFast, BertForSequenceClassification, RobertaTokenizerFast, \
-    RobertaForSequenceClassification
+from transformers import RobertaTokenizerFast, RobertaForSequenceClassification
 from src.models.transformers.custom_transformers.roberta_for_hierarchical_classification_rnn import \
     RobertaForHierarchicalClassificationRNN
 from src.models.transformers.custom_transformers.roberta_for_hierarchical_classification_hierarchy import \
@@ -17,8 +16,8 @@ def provide_model_and_tokenizer(name, pretrained_model_or_path, config=None):
         return roberta_base_flat(config, pretrained_model_or_path)
     elif name == 'roberta-base-hierarchy-rnn':
         return roberta_base_hierarchy_rnn(config, pretrained_model_or_path)
-    elif name == 'roberta-base-hierarchy-exploit':
-        return roberta_base_hierarchy_exploit(config)
+    elif name == 'roberta-base-hierarchy':
+        return roberta_base_hierarchy(config, pretrained_model_or_path)
 
     raise ValueError('Unknown model name: {}!'.format(name))
 
@@ -44,9 +43,8 @@ def roberta_base_tokenizer():
 
     return tokenizer
 
-def roberta_base_hierarchy_exploit(config):
+def roberta_base_hierarchy(config, pretrained_model_or_path):
     tokenizer = RobertaTokenizerFast.from_pretrained('roberta-base')
-    model = RobertaForHierarchicalClassificationHierarchy\
-        .from_pretrained('roberta-base', config=config)
+    model = RobertaForHierarchicalClassificationHierarchy.from_pretrained(pretrained_model_or_path, config=config)
 
     return tokenizer, model
