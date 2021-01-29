@@ -6,9 +6,12 @@ from src.evaluation import scorer
 from src.experiments.runner.experiment_runner import ExperimentRunner
 from src.models.transformers import utils
 from src.models.transformers.dataset.category_dataset_flat import CategoryDatasetFlat
+from src.utils import tree_utils
 from src.utils.result_collector import ResultCollector
 
 from transformers import TrainingArguments, Trainer, RobertaConfig
+
+from src.utils.tree_utils import TreeUtils
 
 
 class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
@@ -50,21 +53,29 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
 
     def intialize_hierarchy_paths(self):
         """initialize paths using the provided tree"""
-        oov_path = [[0,0,0]]
+
         leave_nodes = [node[0] for node in self.tree.out_degree if node[1] == 0]
-        paths = [self.determine_path_to_root([node]) for node in leave_nodes]
-        paths = oov_path + paths
-        return paths
+        paths = [self.tree_utils.determine_path_to_root([node]) for node in leave_nodes]
 
-    def determine_path_to_root(self, nodes):
-        predecessors = self.tree.predecessors(nodes[-1])
-        predecessor = [k for k in predecessors][0]
+        # Normalize paths per level in hierarchy - currently the nodes are of increasing number throughout the tree.
+        normalized_paths = [self.tree_utils.normalize_path_from_root_per_level(path) for path in paths]
+        oov_path = [[0, 0, 0]]
+        normalized_paths = oov_path + normalized_paths
 
-        if predecessor == self.root:
-            nodes.reverse()
-            return nodes
-        nodes.append(predecessor)
-        return self.determine_path_to_root(nodes)
+        # Sort paths by last node in list
+        sorted_normalized_paths = []
+        for i in range(len(normalized_paths)):
+            found_path = None
+            for path in normalized_paths:
+                if path[-1] == i:
+                    found_path = path
+                    break
+
+            if not (found_path is None):
+                sorted_normalized_paths.append(found_path)
+                normalized_paths.remove(found_path)
+
+        return sorted_normalized_paths
 
     def run(self):
         """Run experiments"""
@@ -74,8 +85,7 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
 
         config = RobertaConfig.from_pretrained("roberta-base")
         config.paths = self.intialize_hierarchy_paths()
-        config.num_nodes = len(self.tree)
-        config.num_labels = number_of_labels
+        config.num_labels_per_lvl = self.tree_utils.get_number_of_nodes_lvl()
 
         tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'],
                                                              self.parameter['pretrained_model_or_path'],

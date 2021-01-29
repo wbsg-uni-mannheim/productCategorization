@@ -53,12 +53,14 @@ class RobertaForHierarchicalClassificationHierarchy(RobertaPreTrainedModel):
         )
 
         sequence_output = outputs[0][:, 0, :].view(-1, 768)  # take <s> token (equiv. to [CLS])
-        logits = self.classifier(sequence_output)
+
 
         loss = None
+        logits = None
         if labels is not None:
-            loss_fct = CrossEntropyLoss()
-            loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+            logits, loss = self.classifier(sequence_output, labels)
+
+
 
         if not return_dict:
             output = (logits,) + outputs[2:]

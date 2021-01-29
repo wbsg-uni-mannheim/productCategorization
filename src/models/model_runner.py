@@ -7,6 +7,8 @@ from sys import platform
 import os
 import pandas as pd
 
+from src.utils.tree_utils import TreeUtils
+
 
 class ModelRunner:
 
@@ -75,4 +77,6 @@ class ModelRunner:
             self.logger.info('Loaded tree for dataset {}!'.format(self.dataset_name))
 
         self.root = [node[0] for node in self.tree.in_degree if node[1] == 0][0]
+
+        self.tree_utils = TreeUtils(self.tree)
 
