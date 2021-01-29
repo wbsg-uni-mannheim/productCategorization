@@ -2,7 +2,7 @@
   "dataset": "wdc_ziqi",
   "parameter":
     {
-      "epochs": 5,
+      "epochs": 25,
       "experiment_name": "roberta-base-hierarchy-1",
       "gradient_accumulation_steps": 2,
       "metric_for_best_model": "h_f1",
