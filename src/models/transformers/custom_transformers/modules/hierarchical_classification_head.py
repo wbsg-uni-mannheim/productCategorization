@@ -15,6 +15,7 @@ class HierarchicalClassificationHead(nn.Module):
         self.num_labels_per_lvl = config.num_labels_per_lvl
 
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # create a weight matrix and bias vector for each node in the tree
         self.nodes = {}
@@ -46,7 +47,7 @@ class HierarchicalClassificationHead(nn.Module):
 
         # Make predictions along path
         logits = [torch.sigmoid(self.nodes[lvl][node](input)) for node in path]
-        logits = torch.cat(logits, dim=1)
+        logits = torch.cat(logits, dim=1).to(self.device)
 
         # Calculate logit for given input and path
         logit = torch.prod(logits, dim=1)
