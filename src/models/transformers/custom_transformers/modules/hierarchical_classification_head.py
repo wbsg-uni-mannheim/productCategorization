@@ -48,8 +48,9 @@ class HierarchicalClassificationHead(nn.Module):
         input = self.dropout(input)
 
         # Make predictions along path
-        logits = [torch.sigmoid(self.nodes[lvl][node](input)).to(device) for node in path]
-        logits = torch.cat(logits, dim=1).to(self.device)
+        logits = [self.nodes[lvl][node](input) for node in path]
+        logits = [torch.sigmoid(logit) for logit in logits]
+        logits = torch.cat(logits, dim=1).to(device)
 
         # Calculate logit for given input and path
         logit = torch.prod(logits, dim=1)
