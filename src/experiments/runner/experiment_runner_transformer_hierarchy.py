@@ -29,36 +29,52 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
         experiments = self.load_configuration(path)
         self.parameter = experiments['parameter']
 
-    def encode_labels(self):
-        """Encode & decode labels plus rescale encoded values"""
-        # Use root node for out of vocabulary prediction
+    # def encode_labels(self):
+    #     """Encode & decode labels plus rescale encoded values"""
+    #     # Use root node for out of vocabulary prediction
+    #     normalized_encoder = {'Root': {'original_key': 0, 'derived_key': 0}}
+    #     normalized_decoder = { 0: {'original_key': 0, 'value': 'Root'}}
+    #     decoder = dict(self.tree.nodes(data="name"))
+    #     encoder = dict([(value, key) for key, value in decoder.items()])
+    #
+    #     leaf_nodes = [node[0] for node in self.tree.out_degree(self.tree.nodes()) if node[1] == 0]
+    #     leaf_nodes = [decoder[node] for node in leaf_nodes]
+    #
+    #     new_leaf_nodes = self.tree_utils.get_sorted_leaf_nodes()
+    #
+    #     # Rescale keys!
+    #     derived_key = 1 # Start with 1 --> 0 is out of category
+    #     for key in encoder:
+    #         if key in leaf_nodes:
+    #             normalized_encoder[key] = {'original_key': encoder[key], 'derived_key': derived_key}
+    #             normalized_decoder[derived_key] = {'original_key': encoder[key], 'value': key}
+    #             derived_key += 1
+    #
+    #     return normalized_encoder, normalized_decoder, number_leaf_nodes
+
+    def intialize_hierarchy_paths(self):
+        """initialize paths using the provided tree"""
+
+        leaf_nodes = [node[0] for node in self.tree.out_degree if node[1] == 0]
+        paths = [self.tree_utils.determine_path_to_root([node]) for node in leaf_nodes]
+
+        # Normalize paths per level in hierarchy - currently the nodes are of increasing number throughout the tree.
+        normalized_paths = [self.tree_utils.normalize_path_from_root_per_level(path) for path in paths]
+
+
         normalized_encoder = {'Root': {'original_key': 0, 'derived_key': 0}}
         normalized_decoder = { 0: {'original_key': 0, 'value': 'Root'}}
         decoder = dict(self.tree.nodes(data="name"))
         encoder = dict([(value, key) for key, value in decoder.items()])
 
-        leaf_nodes = [node[0] for node in self.tree.out_degree(self.tree.nodes()) if node[1] == 0]
-        leaf_nodes = [decoder[node] for node in leaf_nodes]
-        number_leaf_nodes = len(leaf_nodes) + 1
-
-        # Rescale keys!
-        derived_key = 1 # Start with 1 --> 0 is out of category
-        for key in encoder:
+        #initiaize encoders
+        for path, normalized_path in zip(paths, normalized_paths):
+            key = path[-1]
+            derived_key = normalized_path[-1]
             if key in leaf_nodes:
-                normalized_encoder[key] = {'original_key': encoder[key], 'derived_key': derived_key}
-                normalized_decoder[derived_key] = {'original_key': encoder[key], 'value': key}
-                derived_key += 1
+                normalized_encoder[decoder[key]] = {'original_key': key, 'derived_key': derived_key}
+                normalized_decoder[derived_key] = {'original_key': key, 'value': decoder[key]}
 
-        return normalized_encoder, normalized_decoder, number_leaf_nodes
-
-    def intialize_hierarchy_paths(self):
-        """initialize paths using the provided tree"""
-
-        leave_nodes = [node[0] for node in self.tree.out_degree if node[1] == 0]
-        paths = [self.tree_utils.determine_path_to_root([node]) for node in leave_nodes]
-
-        # Normalize paths per level in hierarchy - currently the nodes are of increasing number throughout the tree.
-        normalized_paths = [self.tree_utils.normalize_path_from_root_per_level(path) for path in paths]
         oov_path = [[0, 0, 0]]
         normalized_paths = oov_path + normalized_paths
 
@@ -75,16 +91,16 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
                 sorted_normalized_paths.append(found_path)
                 normalized_paths.remove(found_path)
 
-        return sorted_normalized_paths
+        return normalized_encoder, normalized_decoder, sorted_normalized_paths
 
     def run(self):
         """Run experiments"""
         result_collector = ResultCollector(self.dataset_name, self.experiment_type)
 
-        normalized_encoder, normalized_decoder, number_of_labels = self.encode_labels()
+        normalized_encoder, normalized_decoder, sorted_normalized_paths = self.intialize_hierarchy_paths()
 
         config = RobertaConfig.from_pretrained("roberta-base")
-        config.paths = self.intialize_hierarchy_paths()
+        config.paths = sorted_normalized_paths
         config.num_labels_per_lvl = self.tree_utils.get_number_of_nodes_lvl()
 
         tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'],
@@ -96,6 +112,10 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
             df_ds = self.dataset[key]
             if self.test:
                 # load only subset of the data
+
+                #DONT COMMIT CHANGE
+                df_ds = df_ds[df_ds['category'] == '67010100_Clothing Accessories']
+
                 df_ds = df_ds[:20]
                 self.logger.warning('Run in test mode - dataset reduced to 20 records!')
 

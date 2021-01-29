@@ -169,8 +169,11 @@ class HierarchicalScorer:
         self.root = [node[0] for node in self.tree.in_degree if node[1] == 0][0]
 
     def determine_path_to_root(self, nodes):
-        predecessors = self.tree.predecessors(nodes[-1])
-        predecessor = [k for k in predecessors][0]
+        predecessors = [k for k in self.tree.predecessors(nodes[-1])]
+        if len(predecessors) > 0:
+            predecessor = predecessors[0]
+        else:
+            predecessor = self.root #Return ooc path
 
         if predecessor == self.root:
             nodes.reverse()
@@ -220,11 +223,11 @@ class HierarchicalScorer:
         return successors
 
     def compute_metrics_transformers_flat(self, pred):
-        labels = pred.label_ids
-        preds = pred.predictions.argmax(-1)
+        raw_labels = pred.label_ids
+        raw_preds = pred.predictions.argmax(-1)
 
-        labels = [self.transformer_decoder[label]['value'] for label in labels]
-        preds = [self.transformer_decoder[pred]['value'] for pred in preds]
+        labels = [self.transformer_decoder[label]['value'] for label in raw_labels]
+        preds = [self.transformer_decoder[pred]['value'] for pred in raw_preds]
 
         return self.compute_metrics_no_encoding(labels, preds)
 

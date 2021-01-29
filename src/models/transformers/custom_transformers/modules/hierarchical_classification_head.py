@@ -29,7 +29,9 @@ class HierarchicalClassificationHead(nn.Module):
         loss_fct = CrossEntropyLoss()
         loss = None
         logits = None
+
         for lvl in self.paths_per_lvl:
+        #lvl = 3
             logit_list = [self.predict_along_path(input,path, lvl) for path in self.paths_per_lvl[lvl]]
             logits = torch.stack(logit_list, dim=1).to(device)
 
@@ -44,13 +46,11 @@ class HierarchicalClassificationHead(nn.Module):
         return logits, loss
 
     def predict_along_path(self, input, path, lvl):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        input = self.dropout(input).to(device)
+        input = self.dropout(input)
 
         # Make predictions along path
-
-        logits = [torch.sigmoid(self.nodes[lvl][node](input)) for node in path]
-        logits = torch.cat(logits, dim=1).to(device)
+        logits = [torch.sigmoid(self.nodes[i+1][path[i]](input)) for i in range(lvl)]
+        logits = torch.cat(logits, dim=1)
 
         # Calculate logit for given input and path
         logit = torch.prod(logits, dim=1)

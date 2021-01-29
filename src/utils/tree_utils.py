@@ -44,6 +44,19 @@ class TreeUtils():
         assert (len(path) == len(normalized_path))
         return normalized_path
 
+    def get_sorted_leaf_nodes(self):
+        leaf_nodes = []
+        successors = [node for node in self.tree.successors(self.root)]
+        while len(successors) > 0:
+            successor = successors.pop()
+            new_successors = [node for node in self.tree.successors(successor)]
+            if len(new_successors) > 0:
+                successors.extend(new_successors)
+            else:
+                leaf_nodes.append(successor)
+
+        return leaf_nodes
+
     def get_number_of_nodes_lvl(self):
         #3 is hard coded for now!
         num_labels_per_level = {}
