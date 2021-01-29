@@ -30,7 +30,7 @@ class HierarchicalClassificationHead(nn.Module):
         logits = None
         for lvl in self.paths_per_lvl:
             logit_list = [self.predict_along_path(input,path, lvl) for path in self.paths_per_lvl[lvl]]
-            logits = torch.stack(logit_list, dim=1)
+            logits = torch.stack(logit_list, dim=1).to(self.device)
 
             updated_labels = self.update_label_per_lvl(labels, lvl)
 
@@ -46,7 +46,7 @@ class HierarchicalClassificationHead(nn.Module):
         input = self.dropout(input)
 
         # Make predictions along path
-        logits = [torch.sigmoid(self.nodes[lvl][node](input)) for node in path]
+        logits = [torch.sigmoid(self.nodes[lvl][node](input)).to(self.device) for node in path]
         logits = torch.cat(logits, dim=1).to(self.device)
 
         # Calculate logit for given input and path
