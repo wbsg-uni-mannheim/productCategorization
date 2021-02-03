@@ -22,14 +22,52 @@ class HierarchicalClassificationHead(nn.Module):
         for lvl in self.num_labels_per_lvl:
             self.nodes[lvl] = nn.ModuleList([nn.Linear(self.hidden_size, 1).to(device) for i in range(self.num_labels_per_lvl[lvl])])
 
-
     def forward(self, input, labels):
+        # Make a prediction for all nodes in the tree and full paths
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        loss_fct = CrossEntropyLoss()
+        loss = None
+        logits = None
+
+        input = self.dropout(input)
+
+        # Make prediction for each lvl in hierarchy
+        for lvl in self.nodes:
+            logit_list = [node(input) for node in self.nodes[lvl]]
+            logits = torch.stack(logit_list, dim=1).to(device)
+
+            updated_labels = self.update_label_per_lvl(labels, lvl)
+
+            if loss is None:
+                loss = loss_fct(logits.view(-1, self.num_labels_per_lvl[lvl]), updated_labels.view(-1))
+            else:
+                loss += loss_fct(logits.view(-1, self.num_labels_per_lvl[lvl]), updated_labels.view(-1))
+
+
+        #lvl = 3 --> longest path
+        logit_list = [self.predict_along_path(input,path, 3) for path in self.paths_per_lvl[3]]
+        logits = torch.stack(logit_list, dim=1).to(device)
+
+        updated_labels = self.update_label_per_lvl(labels, 3)
+
+        if loss is None:
+            loss = loss_fct(logits.view(-1, self.num_labels_per_lvl[3]), updated_labels.view(-1))
+        else:
+            loss += loss_fct(logits.view(-1, self.num_labels_per_lvl[3]), updated_labels.view(-1))
+
+        #Return only logits of last run to receive only valid paths!
+        return logits, loss
+
+    def forward_along_paths(self, input, labels):
         # Make a prediction along all paths in the tree
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         loss_fct = CrossEntropyLoss()
         loss = None
         logits = None
 
+        input = self.dropout(input)
+
+        # Make prediction for each lvl in hierarchy along path to hierarchy lvl
         for lvl in self.paths_per_lvl:
         #lvl = 3
             logit_list = [self.predict_along_path(input,path, lvl) for path in self.paths_per_lvl[lvl]]
@@ -46,8 +84,6 @@ class HierarchicalClassificationHead(nn.Module):
         return logits, loss
 
     def predict_along_path(self, input, path, lvl):
-        input = self.dropout(input)
-
         # Make predictions along path
         logits = [torch.sigmoid(self.nodes[i+1][path[i]](input)) for i in range(lvl)]
         logits = torch.cat(logits, dim=1)

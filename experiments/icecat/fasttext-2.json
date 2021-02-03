@@ -7,7 +7,13 @@
       "autotune": false,
       "epoch": 50,
       "lr": 0.9,
-      "wordNgrams": 2,
+      "wordNgrams": 3,
+      "neg": 10,
+      "loss": "ns",
+      "minn": 4,
+      "maxn": 10,
+      "thread": 30,
+      "dim": 300,
       "seed": 42
     },
   "type": "fasttext-based"
