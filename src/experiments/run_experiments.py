@@ -70,7 +70,7 @@ def run_experiment(configuration, test, experiment_type):
 def augment_experiments(experiment):
     logger = logging.getLogger(__name__)
 
-    learning_rates = [3e-5, 5e-5, 8e-5]
+    learning_rates = [5e-5]
     seeds = [42, 13, 9]
 
     # Load base configuration
