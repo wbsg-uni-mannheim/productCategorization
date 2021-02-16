@@ -50,7 +50,7 @@ def generate_datasets_for_language_modelling(dataset, dataset_name, df_additiona
 
     configurations = []
     config_1 = {'category': True, 'category_reverse': False, 'description': True,
-                'multiple_rows': False, 'additional_ds': True}
+                'multiple_rows': True, 'additional_ds': True}
     configurations.append(config_1)
 
     for config in configurations:
