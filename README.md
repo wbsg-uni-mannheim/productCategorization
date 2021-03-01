@@ -1,17 +1,31 @@
 Improving Hierarchical Product Classification using Domain-specific Language Modelling
 ==============================
 
-Hierarchical product classification is a major challenge for product aggregators, 
-who support customers in finding the right product on-line. 
-To guarantee a good customer experience, product aggregators integrate heterogeneous product data from a constantly growing number of web shops into a single product hierarchy. 
-Hierarchical product classification is an on-going research topic. 
-Recently, pre-trained transformer models have shown state of the art performance results on many benchmark NLP tasks.
-These transformer models are pre-trained on huge text corpora using self-supervised learning and fine-tuned on downstream tasks.
-In this work we demonstrate how hierarchical product classification can be improved using the same transfer learning technique.
-We show that by using self-supervised masked language modelling on a large domain-specific product corpus, it is possible to improve hierarchical product classification.
-This large corpus of heterogeneous product offers has been extracted from the public web. 
-Our best approach outperforms state of the art approaches, which rely on general pre-training and task-specific fine-tuning by 5.32%. 
+In order to deliver a coherent user experience, product aggregators
+like market places or price portals integrate product offers from
+many web shops into a single product hierarchy. Recently, transformer
+models have shown remarkable performance on various
+NLP tasks. These models are pre-trained on huge cross-domain text
+corpora using self-supervised learning and fine-tuned afterwards
+for specific downstream tasks. Research from other application
+domains indicates that additional self-supervised pre-training using
+domain-specific text corpora can further increase downstream
+performance without requiring additional task-specific training
+data.
 
+In this paper we first show that transformers outperform a more
+traditional fastText-based classification technique on the task of
+assigning product offers from different web shops into a single
+product hierarchy. Afterwards, we investigate whether it is possible
+to further improve the performance of the transformer model by
+performing additional self-supervised pre-training using different
+corpora of product offers which were extracted from the Common
+Crawl. Our experiments show that by using large numbers of
+related product offers together with the heterogeneous categorization
+information from the original web shops for masked language
+modelling, it is possible to further increase the performance of the
+transformer model by 1.22% in wF1 and 1.36% in hF1 reaching a
+performance of nearly 89% wF1.
 All source code to reproduce our results is available in this repository.
 
 The data needed to evaluate the results is online available as well:
