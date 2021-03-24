@@ -1,5 +1,5 @@
 { "experiment_name": "eval-roberta-base-flat-2",
-  "type" : "eval-transformer-based-rnn",
+  "type" : "eval-transformer-based-flat",
   "dataset" : "wdc_ziqi",
   "original_dataset" : "wdc_ziqi",
   "original_experiment_name" : "roberta-base-flat-2",
