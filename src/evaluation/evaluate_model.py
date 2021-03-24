@@ -67,7 +67,7 @@ def evaluate_experiments(configuration, test, experiment_type):
 def augment_experiments(experiment):
     logger = logging.getLogger(__name__)
 
-    learning_rates = [3e-5]
+    learning_rates = [5e-5]
     seeds = [42, 13, 9]
 
     # Load base configuration
@@ -90,7 +90,7 @@ def augment_experiments(experiment):
                 prefix_experiment_name = experiment_path.split('/')[-1]
             experiment_name = '{}_{}_{}'.format(prefix_experiment_name, learning_rate, seed)
             exp_config['experiment_name'] = experiment_name
-            prediction_output = '{}_{}_{}.pkl'.format(initial_prediction_output, learning_rate, seed)
+            prediction_output = '{}_{}_{}.csv'.format(initial_prediction_output, learning_rate, seed)
             exp_config['prediction_output'] = prediction_output
             model_path = '{}_{}_{}'.format(initial_model_path, learning_rate, seed)
             exp_config['model_path'] = model_path
