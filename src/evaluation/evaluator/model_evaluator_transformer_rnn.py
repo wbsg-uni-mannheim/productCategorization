@@ -122,8 +122,8 @@ class ModelEvaluatorTransformerRNN(ModelEvaluator):
 
         labels, preds, labels_per_lvl, preds_per_lvl = evaluator.transpose_rnn_hierarchy(pred)
 
-        ds_eval['Leaf Label'] = [normalized_decoder[label]['original_key'] for label in labels]
-        ds_eval['Leaf Prediction'] = [normalized_decoder[pred]['original_key'] for pred in preds]
+        #ds_eval['Leaf Label'] = [normalized_decoder[label]['original_key'] for label in labels]
+        #ds_eval['Leaf Prediction'] = [normalized_decoder[pred]['original_key'] for pred in preds]
 
         counter = 1
         for labs, predictions in zip(labels_per_lvl, preds_per_lvl):
