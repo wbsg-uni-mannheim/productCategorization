@@ -122,16 +122,16 @@ class ModelEvaluatorTransformerRNN(ModelEvaluator):
 
         labels, preds, labels_per_lvl, preds_per_lvl = evaluator.transpose_rnn_hierarchy(pred)
 
-        #ds_eval['Leaf Label'] = [normalized_decoder[label]['original_key'] for label in labels]
-        #ds_eval['Leaf Prediction'] = [normalized_decoder[pred]['original_key'] for pred in preds]
+        ds_eval['Leaf Label'] = [label for label in labels]
+        ds_eval['Leaf Prediction'] = [pred for pred in preds]
 
         counter = 1
         for labs, predictions in zip(labels_per_lvl, preds_per_lvl):
             column_name_label = 'Hierarchy Level {} Label'.format(counter)
             column_name_prediction = 'Hierarchy Level {} Prediction'.format(counter)
 
-            ds_eval[column_name_label] = [normalized_decoder[label] for label in labs]
-            ds_eval[column_name_prediction] = [normalized_decoder[prediction] for prediction in predictions]
+            ds_eval[column_name_label] = [label for label in labs]
+            ds_eval[column_name_prediction] = [prediction for prediction in predictions]
 
             counter += 1
 
