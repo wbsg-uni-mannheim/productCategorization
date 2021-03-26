@@ -9,6 +9,7 @@ from src.evaluation.evaluator.model_evaluator_fasttext import ModelEvaluatorFast
 from src.evaluation.evaluator.model_evaluator_random_forest import ModelEvaluatorRandomForest
 from src.evaluation.evaluator.model_evaluator_transformer_flat import ModelEvaluatorTransformer
 from src.evaluation.evaluator.model_evaluator_transformer_rnn import ModelEvaluatorTransformerRNN
+from src.experiments.runner.experiment_runner_transformer_hierarchy import ModelEvaluatorTransformerHierarchy
 
 
 @click.command()
@@ -55,6 +56,8 @@ def evaluate_experiments(configuration, test, experiment_type):
         evaluator = ModelEvaluatorTransformer(configuration, test, experiment_type)
     elif experiment_type == 'eval-transformer-based-rnn':
         evaluator = ModelEvaluatorTransformerRNN(configuration, test, experiment_type)
+    elif experiment_type == 'eval-transformer-based-hierarchy':
+        evaluator = ModelEvaluatorTransformerHierarchy(configuration, test, experiment_type)
     elif experiment_type == 'eval-random-forest-based':
         evaluator = ModelEvaluatorRandomForest(configuration, test, experiment_type)
     elif experiment_type == 'eval-fasttext-based':

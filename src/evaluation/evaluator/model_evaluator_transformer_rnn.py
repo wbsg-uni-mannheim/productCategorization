@@ -135,6 +135,7 @@ class ModelEvaluatorTransformerRNN(ModelEvaluator):
 
             counter += 1
 
+        full_prediction_output = '{}/{}'.format(self.data_dir, self.prediction_output)
         ds_eval.to_csv(self.prediction_output, index=False, sep=';', encoding='utf-8', quotechar='"',
                                       quoting=csv.QUOTE_ALL)
 
