@@ -13,7 +13,7 @@ from src.models.transformers.dataset.category_dataset_rnn import CategoryDataset
 from src.utils.result_collector import ResultCollector
 
 
-class ModelEvaluatorTransformerRNN(ModelEvaluator):
+class ModelEvaluatorTransformerHierarchy(ModelEvaluator):
 
     def __init__(self, configuration_path, test, experiment_type):
         super().__init__(configuration_path, test, experiment_type)
