@@ -12,7 +12,10 @@ class HierarchicalClassificationHead(nn.Module):
         self.hidden_size = config.hidden_size
         self.paths_per_lvl = self.initialize_paths_per_lvl(config.paths)
 
-        self.num_labels_per_lvl = config.num_labels_per_lvl
+        self.num_labels_per_lvl = {}
+
+        for count, number in enumerate(config.num_labels_per_lvl.items()):
+            self.num_labels_per_lvl[count +1 ] = number[1]
 
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
@@ -48,7 +51,7 @@ class HierarchicalClassificationHead(nn.Module):
         logit_list = [self.predict_along_path(input,path, 3) for path in self.paths_per_lvl[3]]
         logits = torch.stack(logit_list, dim=1).to(device)
 
-        updated_labels = self.update_label_per_lvl(labels, 3)
+        updated_labels = self.update_label_per_lvl(labels, 3, True)
 
         if loss is None:
             loss = loss_fct(logits.view(-1, self.num_labels_per_lvl[3]), updated_labels.view(-1))
@@ -95,9 +98,9 @@ class HierarchicalClassificationHead(nn.Module):
 
     def initialize_paths_per_lvl(self, paths):
         length = max([len(path) for path in paths])
-        added_paths = set()
         paths_per_lvl = {}
         for i in range(length):
+            added_paths = set()
             paths_per_lvl[i+1] = []
             for path in paths:
                 new_path = path[:i+1]
@@ -108,13 +111,17 @@ class HierarchicalClassificationHead(nn.Module):
 
         return paths_per_lvl
 
-    def update_label_per_lvl(self, labels, lvl):
+    def update_label_per_lvl(self, labels, lvl, all_paths=False):
         #Move this function out of training in the future!!!!
         unique_values = labels
         updated_labels = labels.clone()
         for value in unique_values:
             searched_path = self.paths_per_lvl[len(self.paths_per_lvl)][value]
-            update_value = searched_path[lvl - 1]
-            updated_labels[updated_labels==value] = update_value
+            if len(searched_path) >= lvl:
+                update_value = searched_path[lvl - 1]
+                updated_labels[updated_labels==value] = update_value
+
+        if not all_paths:
+            updated_labels = [path for path in updated_labels if len(path) == lvl]
 
         return updated_labels
