@@ -15,7 +15,7 @@ class HierarchicalClassificationHead(nn.Module):
         self.num_labels_per_lvl = {}
 
         for count, number in enumerate(config.num_labels_per_lvl.items()):
-            self.num_labels_per_lvl[count +1 ] = number[1]
+            self.num_labels_per_lvl[count + 1] = number[1]
 
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
@@ -39,7 +39,7 @@ class HierarchicalClassificationHead(nn.Module):
             logit_list = [node(input) for node in self.nodes[lvl]]
             logits = torch.stack(logit_list, dim=1).to(device)
 
-            updated_labels = self.update_label_per_lvl(labels, lvl)
+            updated_labels = self.update_label_per_lvl(labels, lvl, True)
 
             if loss is None:
                 loss = loss_fct(logits.view(-1, self.num_labels_per_lvl[lvl]), updated_labels.view(-1))
