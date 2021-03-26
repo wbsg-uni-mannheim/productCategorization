@@ -61,7 +61,6 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
         # Normalize paths per level in hierarchy - currently the nodes are of increasing number throughout the tree.
         normalized_paths = [self.tree_utils.normalize_path_from_root_per_level(path) for path in paths]
 
-
         normalized_encoder = {'Root': {'original_key': 0, 'derived_key': 0}}
         normalized_decoder = { 0: {'original_key': 0, 'value': 'Root'}}
         decoder = dict(self.tree.nodes(data="name"))
@@ -78,14 +77,18 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
         oov_path = [[0, 0, 0]]
         normalized_paths = oov_path + normalized_paths
 
-        # Sort paths by last node in list
+        #Align length of paths if necessary
+        longest_path = max([len(path) for path in normalized_paths])
+
+        # Sort paths ascending
         sorted_normalized_paths = []
         for i in range(len(normalized_paths)):
-            found_path = None
+            found_path = normalized_paths[0]
             for path in normalized_paths:
-                if path[-1] == i:
-                    found_path = path
-                    break
+                for found_node, node in zip(found_path,path):
+                    if found_node > node:
+                        found_path = path
+                        break
 
             if not (found_path is None):
                 sorted_normalized_paths.append(found_path)
@@ -103,6 +106,7 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
         config.paths = sorted_normalized_paths
         config.num_labels_per_lvl = self.tree_utils.get_number_of_nodes_lvl()
 
+
         tokenizer, model = utils.provide_model_and_tokenizer(self.parameter['model_name'],
                                                              self.parameter['pretrained_model_or_path'],
                                                              config)
@@ -114,7 +118,7 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
                 # load only subset of the data
 
                 #DONT COMMIT CHANGE
-                df_ds = df_ds[df_ds['category'] == '67010100_Clothing Accessories']
+                #df_ds = df_ds[df_ds['category'] == '67010100_Clothing Accessories']
 
                 df_ds = df_ds[:20]
                 self.logger.warning('Run in test mode - dataset reduced to 20 records!')

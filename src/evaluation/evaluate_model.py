@@ -9,7 +9,7 @@ from src.evaluation.evaluator.model_evaluator_fasttext import ModelEvaluatorFast
 from src.evaluation.evaluator.model_evaluator_random_forest import ModelEvaluatorRandomForest
 from src.evaluation.evaluator.model_evaluator_transformer_flat import ModelEvaluatorTransformer
 from src.evaluation.evaluator.model_evaluator_transformer_rnn import ModelEvaluatorTransformerRNN
-from src.experiments.runner.experiment_runner_transformer_hierarchy import ModelEvaluatorTransformerHierarchy
+from src.evaluation.evaluator.model_evaluator_transformer_hierarchy import ModelEvaluatorTransformerHierarchy
 
 
 @click.command()
