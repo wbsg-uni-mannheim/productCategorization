@@ -6,6 +6,8 @@ from transformers import Trainer
 from src.evaluation import scorer
 from src.evaluation.evaluator.model_evaluator import ModelEvaluator
 from src.models.transformers import utils
+from src.models.transformers.custom_transformers.roberta_for_hierarchical_classification_hierarchy import \
+    RobertaForHierarchicalClassificationHierarchy
 from src.models.transformers.custom_transformers.roberta_for_hierarchical_classification_rnn import \
     RobertaForHierarchicalClassificationRNN
 from src.models.transformers.dataset.category_dataset_flat import CategoryDatasetFlat
@@ -25,7 +27,7 @@ class ModelEvaluatorTransformerHierarchy(ModelEvaluator):
         data_dir = Path(self.data_dir)
         file_path = data_dir.joinpath(self.model_path)
         print(file_path)
-        self.model = RobertaForHierarchicalClassificationRNN.from_pretrained(file_path)
+        self.model = RobertaForHierarchicalClassificationHierarchy.from_pretrained(file_path)
 
     def intialize_hierarchy_paths(self):
         """initialize paths using the provided tree"""
