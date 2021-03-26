@@ -1,5 +1,6 @@
 import time
 from datetime import datetime
+import csv
 
 from src.data.preprocessing import preprocess
 from src.evaluation import scorer
@@ -178,6 +179,14 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
                 = trainer.evaluate(tf_ds[split])
 
         trainer.save_model()
+
+        prediction = trainer.predict(tf_ds['test'])
+        preds = prediction.predictions.argmax(-1)
+        tf_ds['test']['prediction'] = [normalized_decoder[pred]['value'] for pred in preds]
+        full_prediction_output = '{}/{}'.format(self.data_dir, self.prediction_output)
+
+        tf_ds['test'].to_csv(full_prediction_output, index=False, sep=';', encoding='utf-8', quotechar='"',
+                       quoting=csv.QUOTE_ALL)
 
         # Persist results
         result_collector.persist_results(timestamp)
