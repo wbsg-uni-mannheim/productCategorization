@@ -182,10 +182,14 @@ class ExperimentRunnerTransformerHierarchy(ExperimentRunner):
 
         prediction = trainer.predict(tf_ds['test'])
         preds = prediction.predictions.argmax(-1)
-        tf_ds['test']['prediction'] = [normalized_decoder[pred]['value'] for pred in preds]
-        full_prediction_output = '{}/{}'.format(self.data_dir, self.prediction_output)
 
-        tf_ds['test'].to_csv(full_prediction_output, index=False, sep=';', encoding='utf-8', quotechar='"',
+        if self.test:
+            self.dataset['test'] = self.dataset['test'][:20]
+
+        self.dataset['test']['prediction'] = [normalized_decoder[pred]['value'] for pred in preds]
+        full_prediction_output = '{}/{}.csv'.format(self.data_dir, self.parameter['prediction_output'])
+
+        self.dataset['test'].to_csv(full_prediction_output, index=False, sep=';', encoding='utf-8', quotechar='"',
                        quoting=csv.QUOTE_ALL)
 
         # Persist results
