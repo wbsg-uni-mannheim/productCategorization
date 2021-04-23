@@ -1,0 +1,11 @@
+{ "experiment_name": "eval-1-base-flat",
+  "type" : "eval-transformer-based",
+  "dataset" : "wdc_ziqi",
+  "original_dataset" : "wdc_ziqi",
+  "original_experiment_name" : "1-base-flat",
+  "model_path": "/work-ceph/alebrink/productCategorization/models/wdc_ziqi/transformers/model/1-base-flat",
+  "prediction_output": "/data/prediction/wdc_ziqi/wdc_ziqi-eval-1-base-flat-prediction",
+  "model_name": "roberta-base",
+  "evaluate_on_full_dataset": false,
+  "preprocessing": true
+}

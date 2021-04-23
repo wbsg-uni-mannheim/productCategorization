@@ -1,0 +1,11 @@
+{ "experiment_name": "eval-2-rand_large-rnn",
+  "type" : "eval-transformer-based-rnn",
+  "dataset" : "wdc_ziqi",
+  "original_dataset" : "wdc_ziqi",
+  "original_experiment_name" : "2-rand_large-rnn",
+  "model_path": "/work-ceph/alebrink/productCategorization/models/wdc_ziqi/transformers/model/2-rand_large-rnn",
+  "prediction_output": "/work-ceph/alebrink/productCategorization/data/prediction/wdc_ziqi/wdc_ziqi-eval-2-rand_large-rnn",
+  "model_name": "roberta-base",
+  "evaluate_on_full_dataset": false,
+  "preprocessing": true
+}

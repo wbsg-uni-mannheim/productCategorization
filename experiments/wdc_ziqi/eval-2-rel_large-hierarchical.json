@@ -1,0 +1,11 @@
+{ "experiment_name": "eval-2-rel_large-hierarchical",
+  "type" : "eval-transformer-based-hierarchy",
+  "dataset" : "wdc_ziqi",
+  "original_dataset" : "wdc_ziqi",
+  "original_experiment_name" : "2-rel_large-hierarchical",
+  "model_path": "/work-ceph/alebrink/productCategorization/models/wdc_ziqi/transformers/model/2-rel_large-hierarchical",
+  "prediction_output": "/data/prediction/wdc_ziqi/wdc_ziqi-eval-2-rel_large-hierarchical",
+  "model_name": "roberta-base",
+  "evaluate_on_full_dataset": false,
+  "preprocessing": true
+}

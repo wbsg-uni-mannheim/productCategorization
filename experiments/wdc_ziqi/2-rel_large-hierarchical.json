@@ -1,0 +1,20 @@
+{
+  "dataset": "wdc_ziqi",
+  "parameter":
+    {
+      "epochs": 25,
+      "experiment_name": "2-rel_large-hierarchical",
+      "gradient_accumulation_steps": 2,
+      "metric_for_best_model": "h_f1",
+      "model_name": "roberta-base-hierarchy",
+      "pretrained_model_or_path": "/work-ceph/alebrink/productCategorization/models/wdc_ziqi/pretrained_transformers/language-modelling-wdc-9",
+      "prediction_output": "/data/prediction/wdc_ziqi/wdc_ziqi-2-rel_large-hierarchical",
+      "per_device_train_batch_size": 8,
+      "weight_decay": 0.01,
+      "preprocessing": true,
+      "description": true,
+      "loss_calculation": "per_node_&_path"
+    },
+  "type": "transformer-based-hierarchy",
+  "old_name": "roberta-base-hierarchy-8"
+}
